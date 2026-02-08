@@ -15,6 +15,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.IntStream;
 
 @Component
 public class DataSeeder implements ApplicationRunner {
@@ -45,19 +46,24 @@ public class DataSeeder implements ApplicationRunner {
             return;
         }
         List<DepartmentSeed> departments = buildDepartments();
+        List<String> namePool = buildNamePool();
 
         List<Professor> professors = new ArrayList<>(PROFESSOR_COUNT);
         for (int i = 1; i <= PROFESSOR_COUNT; i++) {
             DepartmentSeed dept = departments.get((i - 1) % departments.size());
-            professors.add(new Professor("Prof-" + i, dept.id(), dept.name()));
+            String name = namePool.get(ThreadLocalRandom.current().nextInt(namePool.size()));
+            professors.add(new Professor("Prof-" + name + "-" + i, dept.id(), dept.name()));
         }
         professorRepository.saveAll(professors);
 
-        List<Student> students = new ArrayList<>(STUDENT_COUNT);
-        for (int i = 1; i <= STUDENT_COUNT; i++) {
-            DepartmentSeed dept = departments.get((i - 1) % departments.size());
-            students.add(new Student("Student-" + i, dept.id(), dept.name()));
-        }
+        List<Student> students = IntStream.rangeClosed(1, STUDENT_COUNT)
+                .parallel()
+                .mapToObj(i -> {
+                    DepartmentSeed dept = departments.get((i - 1) % departments.size());
+                    String name = namePool.get(ThreadLocalRandom.current().nextInt(namePool.size()));
+                    return new Student("Student-" + name + "-" + i, dept.id(), dept.name());
+                })
+                .toList();
         studentRepository.saveAll(students);
 
         List<Course> courses = new ArrayList<>(COURSE_COUNT);
@@ -119,7 +125,9 @@ public class DataSeeder implements ApplicationRunner {
                 LocalTime.of(12, 0),
                 LocalTime.of(13, 30),
                 LocalTime.of(15, 0),
-                LocalTime.of(16, 30)
+                LocalTime.of(16, 30),
+                LocalTime.of(18, 0),
+                LocalTime.of(19, 30)
         };
         for (String day : days) {
             for (LocalTime start : starts) {
@@ -133,5 +141,27 @@ public class DataSeeder implements ApplicationRunner {
     }
 
     private record ScheduleSlot(String day, LocalTime start, LocalTime end) {
+    }
+
+    private List<String> buildNamePool() {
+        String[] lastNames = {
+                "김", "이", "박", "최", "정", "강", "조", "윤", "장", "임",
+                "한", "오", "서", "신", "권", "황", "안", "송", "류", "전",
+                "홍", "고", "문", "양", "손", "배", "백", "허", "유", "남"
+        };
+        String[] firstNames = {
+                "민준", "서준", "도윤", "예준", "시우", "하준", "주원", "지호", "지후", "준우",
+                "서연", "서윤", "지우", "서현", "민서", "하윤", "지민", "예은", "지아", "하은",
+                "윤서", "채원", "수아", "지윤", "다은", "지현", "예린", "수빈", "현우", "태윤",
+                "승민", "정우", "건우", "우진", "시윤", "은우", "현서", "서진", "정민", "민재",
+                "주호", "준서", "예빈", "소윤", "소연", "유진", "가은", "나은", "하린", "지안"
+        };
+        List<String> pool = new ArrayList<>(lastNames.length * firstNames.length);
+        for (String last : lastNames) {
+            for (String first : firstNames) {
+                pool.add(last + first);
+            }
+        }
+        return pool;
     }
 }
