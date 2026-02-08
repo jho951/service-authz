@@ -1,173 +1,204 @@
-# API 문서 (초안)
+# API 문서 (Stable Spec)
 
 ## 공통 사항
 - Base URL: `/`
 - Content-Type: `application/json`
 - 성공 응답은 `data` 필드 사용
 - 실패 응답은 `error` 필드 사용
+- 목록 조회는 `page`, `size`를 지원하며 기본 정렬은 `id ASC`
 
 ### 공통 에러 응답
-
+```json
 {
-"error": {
-"code": "REG_CAPACITY_FULL",
-"message": "정원이 가득 찼습니다.",
-"detail": {
-"courseId": 123
+  "error": {
+    "code": "REG_CAPACITY_FULL",
+    "message": "정원이 가득 찼습니다.",
+    "detail": {
+      "courseId": 1
+    }
+  }
 }
-}
-}
+```
 
+대표 에러 코드:
+- REG_CAPACITY_FULL
+- REG_MAX_CREDITS
+- REG_TIME_CONFLICT
+- REG_DUPLICATE_COURSE
+- REG_NOT_FOUND
+- REG_ALREADY_CANCELED
 
 ## 1) Health
 ### GET /health
 - 설명: 서버 상태 확인. 항상 200 반환.
 - 응답 200:
-
-{ "status": "ok" }
-
+```json
+{
+  "status": "UP",
+  "seeding": "DONE",
+  "counts": {
+    "students": 10000,
+    "courses": 500,
+    "professors": 100
+  }
+}
+```
 
 ## 2) 학생
+### GET /students
+- 설명: 학생 목록 조회
+- 쿼리 파라미터(선택):
+  - `page` (기본 0)
+  - `size` (기본 20)
+- 응답 200:
+```json
+{
+  "data": [
+    {
+      "id": 1001,
+      "name": "Student-1001",
+      "departmentId": 3,
+      "totalCredits": 12
+    }
+  ]
+}
+```
+
 ### GET /students/{studentId}
 - 설명: 학생 단건 조회
 - 응답 200:
-
+```json
 {
-"data": {
-"id": 1001,
-"name": "Student-1001",
-"departmentId": 3,
-"totalCredits": 12
+  "data": {
+    "id": 1001,
+    "name": "Student-1001",
+    "departmentId": 3,
+    "totalCredits": 12
+  }
 }
-}
-
+```
 - 응답 404: `REG_NOT_FOUND`
 
-### GET /students/{studentId}/registrations
-- 설명: 학생 수강내역 조회
+### GET /students/{studentId}/schedule
+- 설명: 내 시간표(이번 학기) 조회
 - 응답 200:
-
+```json
 {
-"data": [
+  "data": [
+    {
+      "courseId": 120,
+      "courseName": "Intro to CS",
+      "credits": 3,
+      "departmentName": "Computer Science",
+      "professorName": "Prof-55",
+      "schedule": [
+        "월 09:00-10:30",
+        "수 09:00-10:30"
+      ]
+    }
+  ]
+}
+```
+- 응답 404: `REG_NOT_FOUND`
+
+## 3) 교수
+### GET /professors
+- 설명: 교수 목록 조회
+- 쿼리 파라미터(선택):
+  - `page` (기본 0)
+  - `size` (기본 20)
+- 응답 200:
+```json
 {
-"registrationId": 9001,
-"courseId": 120,
-"subjectCode": "CS101",
-"credits": 3,
-"timeSlots": [
-{ "day": "MON", "start": "09:00", "end": "10:30" }
-]
+  "data": [
+    { "id": 55, "name": "Prof-55", "departmentId": 3 }
+  ]
 }
-]
+```
+
+### GET /professors/{professorId}
+- 설명: 교수 단건 조회
+- 응답 200:
+```json
+{
+  "data": { "id": 55, "name": "Prof-55", "departmentId": 3 }
 }
+```
+- 응답 404: `REG_NOT_FOUND`
 
-
-## 3) 강좌
+## 4) 강좌
 ### GET /courses
-- 설명: 강좌 목록 조회 (필터 선택)
-- 쿼리 파라미터 (선택):
-    - `departmentId`
-    - `professorId`
-    - `subjectCode`
-    - `page`, `size`
+- 설명: 강좌 목록 조회 (전체/학과별)
+- 쿼리 파라미터(선택):
+  - `departmentId`
+  - `page` (기본 0)
+  - `size` (기본 20)
 - 응답 200:
-
+```json
 {
-"data": [
-{
-"id": 120,
-"subjectCode": "CS101",
-"title": "Intro to CS",
-"departmentId": 3,
-"professorId": 55,
-"credits": 3,
-"capacity": 40,
-"enrolled": 38,
-"timeSlots": [
-{ "day": "MON", "start": "09:00", "end": "10:30" },
-{ "day": "WED", "start": "09:00", "end": "10:30" }
-]
+  "data": [
+    {
+      "id": 120,
+      "name": "Intro to CS",
+      "departmentId": 3,
+      "professorId": 55,
+      "credits": 3,
+      "capacity": 40,
+      "enrolled": 38,
+      "schedule": [
+        "월 09:00-10:30",
+        "수 09:00-10:30"
+      ]
+    }
+  ]
 }
-]
-}
-
+```
 
 ### GET /courses/{courseId}
 - 설명: 강좌 단건 조회
 - 응답 200: 위 강좌 단건 형태
 - 응답 404: `REG_NOT_FOUND`
 
-### GET /courses/{courseId}/registrations
-- 설명: 강좌 수강자 목록
-- 응답 200:
-
-{
-"data": [
-{ "studentId": 1001, "registrationId": 9001 },
-{ "studentId": 1002, "registrationId": 9002 }
-]
-}
-
-
-## 4) 수강 신청/취소
+## 5) 수강 신청/취소
 ### POST /registrations
 - 설명: 수강 신청
 - 요청:
-
+```json
 {
-"studentId": 1001,
-"courseId": 120
+  "studentId": 1001,
+  "courseId": 120
 }
-
+```
 - 응답 201:
-
+```json
 {
-"data": {
-"registrationId": 9001,
-"studentId": 1001,
-"courseId": 120,
-"status": "ENROLLED"
+  "data": {
+    "registrationId": 9001,
+    "studentId": 1001,
+    "courseId": 120,
+    "status": "ENROLLED"
+  }
 }
-}
-
+```
 - 에러:
-    - 400 `REG_MAX_CREDITS`
-    - 400 `REG_TIME_CONFLICT`
-    - 409 `REG_CAPACITY_FULL`
-    - 409 `REG_DUPLICATE_COURSE`
-    - 409 `REG_DUPLICATE_SUBJECT`
-    - 404 `REG_NOT_FOUND`
+  - 409 `REG_CAPACITY_FULL`
+  - 409 `REG_DUPLICATE_COURSE`
+  - 409 `REG_MAX_CREDITS`
+  - 409 `REG_TIME_CONFLICT`
+  - 404 `REG_NOT_FOUND`
 
 ### DELETE /registrations/{registrationId}
 - 설명: 수강 취소
 - 응답 200:
-
+```json
 {
-"data": {
-"registrationId": 9001,
-"status": "CANCELED"
+  "data": {
+    "registrationId": 9001,
+    "status": "CANCELED"
+  }
 }
-}
-
+```
 - 에러:
-    - 404 `REG_NOT_FOUND`
-    - 409 `REG_ALREADY_CANCELED`
+  - 404 `REG_NOT_FOUND`
+  - 409 `REG_ALREADY_CANCELED`
 
-## 5) 초기 데이터 상태
-### GET /seed/status
-- 설명: 초기 데이터 생성 상태 확인
-- 응답 200:
-
-{
-"data": {
-"status": "READY",
-"generated": {
-"departments": 12,
-"professors": 120,
-"students": 10000,
-"courses": 600
-}
-}
-}
-
-- 상태값: `READY`, `SEEDING`

@@ -1,3 +1,12 @@
+# 03 - 요구사항/ API 문서 초안 생성
+
+- Date: 2026-02-08
+- Tool: Codex
+- Goal: 제시한 REQUIREMENT.md를 기반으로 API.md 업데이트
+
+
+## Prompt (원문)
+```text
 # REQUIREMENTS — 요구사항 분석 및 결정 사항 (Stable Spec)
 
 본 문서는 기획팀 요청사항이 불완전한 상태이므로,
@@ -173,3 +182,5 @@
 ### 취소
 - 정상 취소 시 enrolled 감소 및 시간표에서 제거
 
+위와 같이 요구사항을 정리할거고 API.md를 업데이트 해줘
+```

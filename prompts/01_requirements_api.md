@@ -1,8 +1,8 @@
-# 001 - 요구사항/ API 문서 초안 생성
+# 01 - 요구사항/ API 문서 초안 생성
 
 - Date: 2026-02-08
 - Tool: Codex
-- Goal: docs/REQUIREMENTS.md, docs/API.md 초안 작성
+- Goal: 합리적 선택이 필요한 요소
 
 ## Prompt (원문)
 ```text
