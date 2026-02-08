@@ -17,6 +17,7 @@ public class Course {
     private Long id;
     private String name;
     private Long departmentId;
+    private String departmentName;
     private Long professorId;
     private int credits;
     private int capacity;
@@ -28,9 +29,10 @@ public class Course {
     protected Course() {
     }
 
-    public Course(String name, Long departmentId, Long professorId, int credits, int capacity) {
+    public Course(String name, Long departmentId, String departmentName, Long professorId, int credits, int capacity) {
         this.name = name;
         this.departmentId = departmentId;
+        this.departmentName = departmentName;
         this.professorId = professorId;
         this.credits = credits;
         this.capacity = capacity;
@@ -46,6 +48,10 @@ public class Course {
 
     public Long getDepartmentId() {
         return departmentId;
+    }
+
+    public String getDepartmentName() {
+        return departmentName;
     }
 
     public Long getProfessorId() {

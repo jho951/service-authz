@@ -12,13 +12,15 @@ public class Student {
     private Long id;
     private String name;
     private Long departmentId;
+    private String departmentName;
 
     protected Student() {
     }
 
-    public Student(String name, Long departmentId) {
+    public Student(String name, Long departmentId, String departmentName) {
         this.name = name;
         this.departmentId = departmentId;
+        this.departmentName = departmentName;
     }
 
     public Long getId() {
@@ -31,5 +33,9 @@ public class Student {
 
     public Long getDepartmentId() {
         return departmentId;
+    }
+
+    public String getDepartmentName() {
+        return departmentName;
     }
 }

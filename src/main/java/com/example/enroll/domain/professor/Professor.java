@@ -12,13 +12,14 @@ public class Professor {
     private Long id;
     private String name;
     private Long departmentId;
+    private String departmentName;
 
-    protected Professor() {
-    }
+    protected Professor() {}
 
-    public Professor(String name, Long departmentId) {
+    public Professor(String name, Long departmentId, String departmentName) {
         this.name = name;
         this.departmentId = departmentId;
+        this.departmentName = departmentName;
     }
 
     public Long getId() {
@@ -31,5 +32,9 @@ public class Professor {
 
     public Long getDepartmentId() {
         return departmentId;
+    }
+
+    public String getDepartmentName() {
+        return departmentName;
     }
 }
