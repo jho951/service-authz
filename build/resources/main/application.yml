@@ -3,3 +3,29 @@ server:
 spring:
   application:
     name: enroll-system
+  datasource:
+    url: jdbc:h2:mem:enroll;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    display-request-duration: true
+  info:
+    title: University enroll API
+    version: 0.1.0
+    description: Stable Spec for course registration system.
