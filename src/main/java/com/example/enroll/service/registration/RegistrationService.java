@@ -10,7 +10,6 @@ import com.example.enroll.repository.CourseRepository;
 import com.example.enroll.repository.RegistrationRepository;
 import com.example.enroll.repository.StudentRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,7 +39,6 @@ public class RegistrationService {
         this.courseLockManager = courseLockManager;
     }
 
-    @Transactional
     public Registration register(Long studentId, Long courseId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REG_NOT_FOUND));
@@ -82,7 +80,6 @@ public class RegistrationService {
         }
     }
 
-    @Transactional
     public Registration cancel(Long registrationId) {
         Registration registration = registrationRepository.findById(registrationId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REG_NOT_FOUND));
