@@ -182,12 +182,12 @@ public class RegistrationService {
         return map.getOrDefault(dayText, 0);
     }
 
-    private int parseTime(String timeText) {
-        String[] parts = timeText.split(\":\");
-        int hour = Integer.parseInt(parts[0]);
-        int minute = Integer.parseInt(parts[1]);
-        return hour * 60 + minute;
-    }
+	private int parseTime(String timeText) {
+		String[] parts = timeText.split(":");
+		int hour = Integer.parseInt(parts[0]);
+		int minute = Integer.parseInt(parts[1]);
+		return hour * 60 + minute;
+	}
 
     private static class ScheduleSlot {
         private final int day;
