@@ -58,7 +58,7 @@
       "id": 1001,
       "name": "Student-1001",
       "departmentId": 3,
-      "totalCredits": 12
+      "departmentName": "Department-3"
     }
   ]
 }
@@ -73,7 +73,7 @@
     "id": 1001,
     "name": "Student-1001",
     "departmentId": 3,
-    "totalCredits": 12
+    "departmentName": "Department-3"
   }
 }
 ```
@@ -111,7 +111,7 @@
 ```json
 {
   "data": [
-    { "id": 55, "name": "Prof-55", "departmentId": 3 }
+    { "id": 55, "name": "Prof-55", "departmentId": 3, "departmentName": "Department-3" }
   ]
 }
 ```
@@ -121,7 +121,7 @@
 - 응답 200:
 ```json
 {
-  "data": { "id": 55, "name": "Prof-55", "departmentId": 3 }
+  "data": { "id": 55, "name": "Prof-55", "departmentId": 3, "departmentName": "Department-3" }
 }
 ```
 - 응답 404: `REG_NOT_FOUND`
@@ -141,6 +141,7 @@
       "id": 120,
       "name": "Intro to CS",
       "departmentId": 3,
+      "departmentName": "Department-3",
       "professorId": 55,
       "credits": 3,
       "capacity": 40,
@@ -201,4 +202,3 @@
 - 에러:
   - 404 `REG_NOT_FOUND`
   - 409 `REG_ALREADY_CANCELED`
-
