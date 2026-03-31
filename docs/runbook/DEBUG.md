@@ -1,4 +1,4 @@
-# Permission Service 디버깅 절차
+# Authz Service 디버깅 절차
 
 ## 1. 기본 확인
 1. 애플리케이션 실행: `./gradlew bootRun`

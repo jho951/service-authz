@@ -1,6 +1,13 @@
-# Permission Service (MVP)
+# Authz Service (MVP)
 
-Gateway의 관리자 경로(`/admin/**`, `/v1/admin/**`) 인가를 판정하는 내부 서비스입니다.
+Gateway의 관리자 경로(`/admin/**`, `/v1/admin/**`) 인가와 capability 진실을 판정하는 내부 서비스입니다.
+
+## Contract Source
+
+- 공통 계약 레포: `https://github.com/jho951/contract`
+- 이 서비스의 코드 SoT: `Authz-server` `main`
+- 인터페이스 변경 시 본 저장소 구현보다 계약 레포 변경을 먼저 반영합니다.
+- 책임 분리: `Authz-server`는 capability 진실, `User-server`는 프로필 공개 범위, `Editor`는 최종 집행을 소유합니다.
 
 ## 실행 환경
 - Java 17
@@ -25,6 +32,11 @@ Gateway의 관리자 경로(`/admin/**`, `/v1/admin/**`) 인가를 판정하는 
   - 응답: `200`(ALLOW), `403`(DENY), `400`(입력 오류)
 - `GET /health`
 - `GET /ready` (DB + Redis 연결 확인)
+
+## Notes
+
+- 권한 보유와 권한 공개를 분리하고, 실제 기능 집행은 소비자 서비스가 최종 강제합니다.
+- 관리자 RBAC는 v1, 권한 조회/정책/버전/위임은 v2 계약을 따릅니다.
 
 ## 포트/문서
 - 기본 포트: `8084`

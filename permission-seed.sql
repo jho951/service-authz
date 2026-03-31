@@ -1,4 +1,4 @@
--- Permission Service seed data (PostgreSQL)
+-- Authz Service seed data (PostgreSQL)
 -- Assumed tables:
 --   roles(id, name, description, created_at, updated_at)
 --   permissions(id, code, description, created_at, updated_at)

@@ -1,4 +1,4 @@
-# Permission Service 전략 검토 (Editor 연동)
+# Authz Service 전략 검토 (Editor 연동)
 
 ## 배경
 - 기존 코드베이스는 수강신청 예제 구조였고, 현재 목표는 에디터 서버 관리자 경로 인가 서버다.

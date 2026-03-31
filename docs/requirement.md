@@ -1,8 +1,8 @@
 # Permission Server Requirements (MVP)
 
 ## 1. 목적
-- 인증(AuthN)과 인가(AuthZ)를 분리하기 위해 `permission-service`를 독립 서비스로 구축한다.
-- `api-gateway`는 요청 라우팅/공통 정책을 담당하고, 관리자/민감 경로 인가 판정은 `permission-service`가 담당한다.
+- 인증(AuthN)과 인가(AuthZ)를 분리하기 위해 `authz-service`를 독립 서비스로 구축한다.
+- `api-gateway`는 요청 라우팅/공통 정책을 담당하고, 관리자/민감 경로 인가 판정은 `authz-service`가 담당한다.
 
 ## 2. 범위
 - 포함:
@@ -21,8 +21,8 @@
 - Decision: `ALLOW` 또는 `DENY`
 
 ## 4. 아키텍처 원칙
-- `permission-service`는 인가 기준 시스템(Source of Truth)이다.
-- 게이트웨이는 판정 결과를 단기 캐시할 수 있으나, 최종 기준은 `permission-service`다.
+- `authz-service`는 인가 기준 시스템(Source of Truth)이다.
+- 게이트웨이는 판정 결과를 단기 캐시할 수 있으나, 최종 기준은 `authz-service`다.
 - 내부 통신은 사설 네트워크에서만 허용하고, 내부 시크릿 또는 서비스 인증으로 보호한다.
 
 ## 5. 기능 요구사항
@@ -47,7 +47,7 @@
 - User-Role 매핑 테이블 지원
 
 ## 5.3 관리자 경로 규칙
-- `/v1/admin/**` 경로는 반드시 `permission-service` 판정 후 통과한다.
+- `/v1/admin/**` 경로는 반드시 `authz-service` 판정 후 통과한다.
 - 기본 정책은 `DENY` 우선(명시 허용만 통과).
 
 ## 5.4 감사 로그
@@ -86,7 +86,7 @@
 ## 9. 보안 요구사항
 - 내부 호출 전용 엔드포인트는 외부 노출 금지
 - 게이트웨이에서 trusted header 재주입 후 전달
-- permission-service는 trusted header만 신뢰
+- authz-service는 trusted header만 신뢰
 - 입력 값 검증(빈값, path traversal, 비정상 method)
 
 ## 10. 게이트웨이 연동 요구사항
@@ -111,7 +111,7 @@
 
 ## 13. 테스트 요구사항
 - 단위 테스트: 정책 엔진, 매핑, 예외 케이스
-- 통합 테스트: gateway -> permission-service 판정 체인
+- 통합 테스트: gateway -> authz-service 판정 체인
 - 부하 테스트: 캐시 hit/miss 시나리오
 - 보안 테스트: 헤더 위변조, 우회 경로 접근
 
@@ -122,7 +122,7 @@
 4. 고도화: ABAC/리소스 스코프, mTLS, 정책 관리 UI
 
 ## 15. 완료 기준(Definition of Done)
-- 게이트웨이 관리자 경로가 permission-service 판정 없이는 통과하지 않는다.
+- 게이트웨이 관리자 경로가 authz-service 판정 없이는 통과하지 않는다.
 - 권한 변경 후 지정 시간 내(또는 이벤트 즉시) 판정 결과가 반영된다.
 - 운영 대시보드에서 판정 성공률/지연/오류율을 확인할 수 있다.
 
@@ -137,14 +137,14 @@ https://github.com/jho951/Editor-server.git = 에디터 서비스
 # Permission Server Requirements (MVP)
 
 ## 1. 목적
-- 인증(AuthN)과 인가(AuthZ)를 분리하기 위해 `permission-service`를 독립 서비스로 구축한다.
-- `api-gateway`는 요청 라우팅/공통 정책을 담당하고, 관리자/민감 경로 인가 판정은 `permission-service`가 담당한다.
-- 권한 서버 구현 저장소는 `https://github.com/jho951/Permission-server.git`를 기준으로 한다.
+- 인증(AuthN)과 인가(AuthZ)를 분리하기 위해 `authz-service`를 독립 서비스로 구축한다.
+- `api-gateway`는 요청 라우팅/공통 정책을 담당하고, 관리자/민감 경로 인가 판정은 `authz-service`가 담당한다.
+- 권한 서버 구현 저장소는 `https://github.com/jho951/Authz-server.git`를 기준으로 한다.
 
 ## 2. 핵심 원칙
 - Gateway에서 `role`로 직접 허용/거부를 판단하지 않는다.
-- 권한 판정은 `permission-service`가 수행한다.
-- `role`은 `permission-service` 내부 모델(RBAC)로만 사용 가능하다.
+- 권한 판정은 `authz-service`가 수행한다.
+- `role`은 `authz-service` 내부 모델(RBAC)로만 사용 가능하다.
 
 ## 3. 범위
 - 포함:
@@ -195,8 +195,8 @@ https://github.com/jho951/Editor-server.git = 에디터 서비스
 - 역할은 편의 그룹이며, 실제 허용은 permission 매핑 결과로 결정한다.
 
 ## 6. 게이트웨이 연동 요구사항
-- gateway는 `RouteType.ADMIN` 경로에 대해 permission-service를 호출한다.
-- gateway는 permission-service 판정 결과(`200/403`)만 집행한다.
+- gateway는 `RouteType.ADMIN` 경로에 대해 authz-service를 호출한다.
+- gateway는 authz-service 판정 결과(`200/403`)만 집행한다.
 - gateway 내부에 role 판정 로직을 두지 않는다.
 - 연동 환경변수:
 - `PERMISSION_SERVICE_URL`
@@ -233,7 +233,7 @@ https://github.com/jho951/Editor-server.git = 에디터 서비스
 - 장애 시 기본 거부(fail-closed) 권장
 
 ## 8. 완료 기준 (DoD)
-- 관리자 경로가 permission-service 판정 없이는 통과하지 않는다.
+- 관리자 경로가 authz-service 판정 없이는 통과하지 않는다.
 - gateway는 role 판단을 하지 않고 판정 결과만 집행한다.
 - MEMBER 경로도 permission 기반 판정이 가능하다.
 - 판정 로그(requestId, userId, method, path, decision, reason, latency)가 남는다.

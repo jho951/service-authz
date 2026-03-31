@@ -15,7 +15,7 @@ public class OpenApiConfig {
 	@Bean
 	public OpenAPI openAPI() {
 		Info info = new Info()
-			.title("Permission Service API")
+			.title("Authz Service API")
 			.version("0.1.0")
 			.description("Gateway-admin 경로 인가 판정용 내부 API 문서")
 			.contact(new Contact()

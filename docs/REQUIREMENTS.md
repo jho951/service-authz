@@ -1,4 +1,4 @@
-# Permission Service Requirements (Active)
+# Authz Service Requirements (Active)
 
 ## 1. 목적
 - 본 서비스는 `api-gateway`가 `/admin/**` 또는 `/v1/admin/**` 경로로 라우팅하는 요청에 대해 최종 인가 판정을 제공한다.

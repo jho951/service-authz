@@ -1,4 +1,4 @@
-# ADR 001: Editor 관리자 경로용 Permission Service MVP 채택
+# ADR 001: Editor 관리자 경로용 Authz Service MVP 채택
 
 ## 상태
 - 채택됨

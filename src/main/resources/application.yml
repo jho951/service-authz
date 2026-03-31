@@ -2,7 +2,7 @@ server:
   port: 8084
 spring:
   application:
-    name: permission-service
+    name: authz-service
   datasource:
     url: jdbc:h2:mem:permission;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
@@ -31,7 +31,7 @@ springdoc:
     path: /swagger-ui.html
     display-request-duration: true
   info:
-    title: Permission Service API
+    title: Authz Service API
     version: 0.1.0
     description: Internal admin permission verification service for gateway.
 
