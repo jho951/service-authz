@@ -24,6 +24,7 @@
 - Authz Errors: https://github.com/jho951/contract/blob/main/contracts/authz/errors.md
 - Authz OpenAPI v1: https://github.com/jho951/contract/blob/main/contracts/openapi/authz-service.v1.yaml
 - Authz OpenAPI v2: https://github.com/jho951/contract/blob/main/contracts/openapi/authz-service.v2.yaml
+- Authz Policy Engine: https://github.com/jho951/contract/blob/main/contracts/authz/policy-engine.md
 - Gateway Auth Proxy: https://github.com/jho951/contract/blob/main/contracts/gateway/auth-proxy.md
 - Gateway Security: https://github.com/jho951/contract/blob/main/contracts/gateway/security.md
 - Gateway Cache: https://github.com/jho951/contract/blob/main/contracts/gateway/cache.md
@@ -35,6 +36,7 @@
 - [ ] `GET /health` and `GET /ready` match operational contract
 - [ ] v2 `POST /v2/permissions/authorize` and query/introspect endpoints are documented
 - [ ] RBAC, audit, and versioning semantics match `contracts/authz/v2.md`
+- [ ] policy evaluator is backed by Maven Central `plugin-policy-engine`
 - [ ] audit-log event emission matches `contracts/audit-log/service-events.md`
 - [ ] Gateway headers (`X-User-Id`, `X-User-Role`, `X-Session-Id`, `X-Original-Method`, `X-Original-Path`) match contract
 - [ ] Redis prefix ownership matches `contracts/redis/keys.md`

@@ -10,6 +10,7 @@ import com.example.permission.repository.PermissionRepository;
 import com.example.permission.repository.RolePermissionRepository;
 import com.example.permission.repository.RoleRepository;
 import com.example.permission.repository.UserRoleRepository;
+import com.pluginpolicyengine.core.store.InMemoryFlagStore;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 public class PermissionPolicyBootstrap implements ApplicationRunner {
@@ -26,15 +28,18 @@ public class PermissionPolicyBootstrap implements ApplicationRunner {
     private final PermissionRepository permissionRepository;
     private final RolePermissionRepository rolePermissionRepository;
     private final UserRoleRepository userRoleRepository;
+    private final InMemoryFlagStore authzPolicyFlagStore;
 
     public PermissionPolicyBootstrap(RoleRepository roleRepository,
                                      PermissionRepository permissionRepository,
                                      RolePermissionRepository rolePermissionRepository,
-                                     UserRoleRepository userRoleRepository) {
+                                     UserRoleRepository userRoleRepository,
+                                     InMemoryFlagStore authzPolicyFlagStore) {
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
         this.rolePermissionRepository = rolePermissionRepository;
         this.userRoleRepository = userRoleRepository;
+        this.authzPolicyFlagStore = authzPolicyFlagStore;
     }
 
     @Override
@@ -44,6 +49,7 @@ public class PermissionPolicyBootstrap implements ApplicationRunner {
         Map<PermissionCode, PermissionEntity> permissions = ensurePermissions();
         ensureRolePermissions(roles, permissions);
         ensureSampleUserRole(roles);
+        seedPolicyEngine(permissions.keySet());
     }
 
     private Map<RoleCode, RoleEntity> ensureRoles() {
@@ -105,5 +111,11 @@ public class PermissionPolicyBootstrap implements ApplicationRunner {
         }
 
         userRoleRepository.save(new UserRoleEntity("admin-seed", roles.get(RoleCode.ADMIN), "GLOBAL", "*"));
+    }
+
+    private void seedPolicyEngine(Set<PermissionCode> permissionCodes) {
+        for (PermissionCode permissionCode : permissionCodes) {
+            authzPolicyFlagStore.put(PermissionPolicyCatalog.toFlagDefinition(permissionCode));
+        }
     }
 }

@@ -4,26 +4,26 @@ import com.example.permission.api.AdminPermissionVerifyRequest;
 import com.example.permission.api.PermissionBadRequestException;
 import com.example.permission.domain.PermissionCode;
 import com.example.permission.domain.RoleCode;
-import com.example.permission.repository.RolePermissionRepository;
 import com.example.permission.repository.UserRoleRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class AdminPermissionVerifier {
 
     private final UserRoleRepository userRoleRepository;
-    private final RolePermissionRepository rolePermissionRepository;
     private final PermissionDecisionCacheService cacheService;
+    private final AuthzPolicyEngineService policyEngineService;
 
     public AdminPermissionVerifier(UserRoleRepository userRoleRepository,
-                                   RolePermissionRepository rolePermissionRepository,
-                                   PermissionDecisionCacheService cacheService) {
+                                   PermissionDecisionCacheService cacheService,
+                                   AuthzPolicyEngineService policyEngineService) {
         this.userRoleRepository = userRoleRepository;
-        this.rolePermissionRepository = rolePermissionRepository;
         this.cacheService = cacheService;
+        this.policyEngineService = policyEngineService;
     }
 
     public PermissionDecisionResult verify(AdminPermissionVerifyRequest request) {
@@ -32,28 +32,28 @@ public class AdminPermissionVerifier {
         }
 
         PermissionCode requiredPermission = resolvePermissionCode(request.originalMethod(), request.originalPath());
-        String cacheKey = cacheKey(request, requiredPermission);
+        Set<RoleCode> effectiveRoles = resolveRoles(request.userId(), request.userRole());
+        if (effectiveRoles.isEmpty()) {
+            return PermissionDecisionResult.deny("NO_ROLE");
+        }
+        String cacheKey = cacheKey(request, requiredPermission, effectiveRoles);
 
         return cacheService.get(cacheKey)
                 .orElseGet(() -> {
-                    PermissionDecisionResult computed = computeDecision(request, requiredPermission);
+                    PermissionDecisionResult computed = computeDecision(request, requiredPermission, effectiveRoles);
                     cacheService.put(cacheKey, computed);
                     return computed;
                 });
     }
 
-    private PermissionDecisionResult computeDecision(AdminPermissionVerifyRequest request, PermissionCode requiredPermission) {
-        Set<RoleCode> effectiveRoles = resolveRoles(request.userId(), request.userRole());
-        if (effectiveRoles.isEmpty()) {
-            return PermissionDecisionResult.deny("NO_ROLE");
+    private PermissionDecisionResult computeDecision(AdminPermissionVerifyRequest request,
+                                                     PermissionCode requiredPermission,
+                                                     Set<RoleCode> effectiveRoles) {
+        PermissionDecisionResult result = policyEngineService.evaluate(requiredPermission, request.userId(), effectiveRoles, request);
+        if (!result.isAllowed()) {
+            return PermissionDecisionResult.deny("POLICY_DENY:" + result.reason());
         }
-
-        Set<PermissionCode> grantedPermissions = rolePermissionRepository.findPermissionCodesByRoleCodes(effectiveRoles);
-        if (!grantedPermissions.contains(requiredPermission)) {
-            return PermissionDecisionResult.deny("MISSING_PERMISSION");
-        }
-
-        return PermissionDecisionResult.allow("POLICY_MATCH");
+        return PermissionDecisionResult.allow("POLICY_MATCH:" + result.reason());
     }
 
     private Set<RoleCode> resolveRoles(String userId, String roleHeaderValue) {
@@ -71,9 +71,13 @@ public class AdminPermissionVerifier {
         return roleCodes;
     }
 
-    private String cacheKey(AdminPermissionVerifyRequest request, PermissionCode permissionCode) {
+    private String cacheKey(AdminPermissionVerifyRequest request, PermissionCode permissionCode, Set<RoleCode> effectiveRoles) {
+        String roleSnapshot = effectiveRoles.stream()
+                .map(RoleCode::name)
+                .sorted()
+                .collect(Collectors.joining(","));
         String headerRole = request.userRole() == null ? "-" : request.userRole().trim().toUpperCase();
-        return request.userId() + ":" + request.originalMethod() + ":" + request.originalPath() + ":" + permissionCode.name() + ":" + headerRole;
+        return request.userId() + ":" + request.originalMethod() + ":" + request.originalPath() + ":" + permissionCode.name() + ":" + headerRole + ":" + roleSnapshot;
     }
 
     private PermissionCode resolvePermissionCode(String method, String path) {
