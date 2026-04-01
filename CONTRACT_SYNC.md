@@ -18,6 +18,7 @@
 - Authz v2: https://github.com/jho951/contract/blob/main/contracts/authz/v2.md
 - Authz RBAC: https://github.com/jho951/contract/blob/main/contracts/authz/rbac.md
 - Authz Audit: https://github.com/jho951/contract/blob/main/contracts/authz/audit.md
+- Audit Log: https://github.com/jho951/contract/blob/main/contracts/audit-log/README.md
 - Authz Security: https://github.com/jho951/contract/blob/main/contracts/authz/security.md
 - Authz Ops: https://github.com/jho951/contract/blob/main/contracts/authz/ops.md
 - Authz Errors: https://github.com/jho951/contract/blob/main/contracts/authz/errors.md
@@ -34,6 +35,7 @@
 - [ ] `GET /health` and `GET /ready` match operational contract
 - [ ] v2 `POST /v2/permissions/authorize` and query/introspect endpoints are documented
 - [ ] RBAC, audit, and versioning semantics match `contracts/authz/v2.md`
+- [ ] audit-log event emission matches `contracts/audit-log/service-events.md`
 - [ ] Gateway headers (`X-User-Id`, `X-User-Role`, `X-Session-Id`, `X-Original-Method`, `X-Original-Path`) match contract
 - [ ] Redis prefix ownership matches `contracts/redis/keys.md`
 - [ ] capability truth is not conflated with user visibility/privacy or editor enforcement

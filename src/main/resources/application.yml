@@ -35,6 +35,15 @@ springdoc:
     version: 0.1.0
     description: Internal admin permission verification service for gateway.
 
+auditlog:
+  enabled: ${AUDITLOG_ENABLED:true}
+  service-name: ${AUDITLOG_SERVICE_NAME:${spring.application.name}}
+  env: ${AUDITLOG_ENV:local}
+  file-path: ${AUDITLOG_FILE_PATH:./logs/audit.log}
+  async-enabled: ${AUDITLOG_ASYNC_ENABLED:true}
+  async-thread-count: ${AUDITLOG_ASYNC_THREAD_COUNT:2}
+  async-queue-capacity: ${AUDITLOG_ASYNC_QUEUE_CAPACITY:1000}
+
 permission:
   internal-request-secret: ${PERMISSION_INTERNAL_REQUEST_SECRET:}
   cache:
