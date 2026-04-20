@@ -1,0 +1,16 @@
+name: authz-service
+
+services:
+  permission-service:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+    networks:
+      - service-shared
+
+networks:
+  service-shared:
+    external: true
+    name: ${SERVICE_SHARED_NETWORK:-${BACKEND_SHARED_NETWORK:-${MSA_SHARED_NETWORK:-service-backbone-shared}}}

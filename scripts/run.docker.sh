@@ -19,7 +19,10 @@ case "$ACTION" in
 esac
 
 case "$ENV_NAME" in
-  dev|prod) COMPOSE_FILE="$PROJECT_ROOT/docker/$ENV_NAME/compose.yml" ;;
+  dev|prod)
+    BASE_COMPOSE_FILE="$PROJECT_ROOT/docker/compose.yml"
+    ENV_COMPOSE_FILE="$PROJECT_ROOT/docker/$ENV_NAME/compose.yml"
+    ;;
   *) usage; exit 1 ;;
 esac
 
@@ -38,7 +41,7 @@ fi
 
 compose() {
   APP_ENV="$ENV_NAME" SERVICE_SHARED_NETWORK="$SHARED_NETWORK" BACKEND_SHARED_NETWORK="$SHARED_NETWORK" MSA_SHARED_NETWORK="$SHARED_NETWORK" \
-    docker compose --env-file "$ENV_FILE" -p "$COMPOSE_PROJECT_NAME" -f "$COMPOSE_FILE" "$@"
+    docker compose --env-file "$ENV_FILE" -p "$COMPOSE_PROJECT_NAME" -f "$BASE_COMPOSE_FILE" -f "$ENV_COMPOSE_FILE" "$@"
 }
 
 case "$ACTION" in

@@ -45,8 +45,8 @@ env:
       docker push "${IMAGE_URI}:latest"
     fi
   COMPOSE_CONFIG_COMMAND: |
-    docker compose -f docker/dev/compose.yml config >/tmp/authz-dev.yml
-    GITHUB_TOKEN=ci-token PERMISSION_INTERNAL_REQUEST_SECRET=ci-secret REDIS_HOST=central-redis AUTHZ_SERVICE_HOST_BIND=127.0.0.1 PLATFORM_SECURITY_JWT_SECRET=authz-platform-security-ci-secret-authz-platform-security-ci-secret PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS=127.0.0.1 docker compose -f docker/prod/compose.yml config >/tmp/authz-prod.yml
+    docker compose -f docker/compose.yml -f docker/dev/compose.yml config >/tmp/authz-dev.yml
+    GITHUB_TOKEN=ci-token PERMISSION_INTERNAL_REQUEST_SECRET=ci-secret REDIS_HOST=central-redis AUTHZ_SERVICE_HOST_BIND=127.0.0.1 PLATFORM_SECURITY_JWT_SECRET=authz-platform-security-ci-secret-authz-platform-security-ci-secret PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS=127.0.0.1 docker compose -f docker/compose.yml -f docker/prod/compose.yml config >/tmp/authz-prod.yml
   HEALTH_URL: http://127.0.0.1:8084/health
   READY_URL: http://127.0.0.1:8084/ready
   GITHUB_ACTOR: ${{ github.actor }}

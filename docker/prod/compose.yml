@@ -1,17 +1,13 @@
-name: authz-prod
-
 services:
   permission-service:
     build:
-      context: ../..
-      dockerfile: docker/Dockerfile
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN:?GITHUB_TOKEN is required}
     restart: always
     ports:
       - "${AUTHZ_SERVICE_HOST_BIND:?AUTHZ_SERVICE_HOST_BIND is required}:${AUTHZ_SERVICE_HOST_PORT:-8084}:8084"
     env_file:
-      - path: ../../.env.prod
+      - path: ../.env.prod
         required: false
     environment:
       SPRING_PROFILES_ACTIVE: prod
@@ -23,9 +19,3 @@ services:
       PLATFORM_SECURITY_RATE_LIMIT_ENABLED: ${PLATFORM_SECURITY_RATE_LIMIT_ENABLED:-true}
     networks:
       - service-shared
-
-
-networks:
-  service-shared:
-    external: true
-    name: ${SERVICE_SHARED_NETWORK:-${BACKEND_SHARED_NETWORK:-${MSA_SHARED_NETWORK:-service-backbone-shared}}}

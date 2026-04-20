@@ -42,8 +42,20 @@ bash scripts/run.docker.sh up prod
 
 스크립트는 `service-backbone-shared` 계열 external network가 없으면 생성합니다.
 
+## Compose 구성
+`docker/compose.yml`은 공통 base compose입니다.
+- `permission-service` build 설정
+- `service-shared` external network
+
+환경별 compose는 base compose와 함께 사용합니다.
+
+```bash
+docker compose -f docker/compose.yml -f docker/dev/compose.yml config
+docker compose -f docker/compose.yml -f docker/prod/compose.yml config
+```
+
 ## dev compose
-`docker/dev/compose.yml`은 아래 서비스를 포함합니다.
+`docker/dev/compose.yml`은 dev override와 Redis를 포함합니다.
 - `central-redis`
 - `permission-service`
 
@@ -60,7 +72,7 @@ dev Authz:
 - platform-security IP guard/rate limit은 기본 비활성화
 
 ## prod compose
-`docker/prod/compose.yml`은 `permission-service`를 운영 profile로 실행합니다.
+`docker/prod/compose.yml`은 `permission-service`를 운영 profile로 실행하는 override입니다.
 
 필수 환경변수:
 - `GITHUB_TOKEN`
