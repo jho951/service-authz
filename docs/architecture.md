@@ -28,11 +28,10 @@
 `common`에는 아래처럼 app 전역에서 반복되는 얇은 기반 타입만 둡니다.
 - `BaseEntity`
 - `BaseResponse`
-- `ErrorResponse`
 - `ErrorCode`
-- `BaseException`
+- `GlobalException`
 - `BadRequestException`
-- `CommonExceptionHandler`
+- `GlobalExceptionHandler`
 
 `app`에는 실행 정책과 업무 흐름을 둡니다.
 - `config`: OpenAPI, governance audit sink, request logging, health/readiness endpoint

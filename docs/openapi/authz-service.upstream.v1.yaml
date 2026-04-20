@@ -92,7 +92,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/VoidGlobalResponse'
         '403':
           description: 내부 caller proof 검증 실패 또는 권한 검증 거부입니다. 응답 body는 없을 수 있습니다.
           headers:
@@ -103,7 +103,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/VoidGlobalResponse'
 
   /actuator/health:
     get:
@@ -263,16 +263,32 @@ components:
           type: string
           example: debug-corr-1
 
-    ErrorResponse:
+    VoidGlobalResponse:
+      allOf:
+        - $ref: '#/components/schemas/GlobalResponse'
+        - type: object
+          properties:
+            data:
+              nullable: true
+
+    GlobalResponse:
       type: object
-      required: [code, message]
+      required: [httpStatus, success, message, code]
       properties:
-        code:
+        httpStatus:
           type: integer
-          example: 9001
+          example: 400
+        success:
+          type: boolean
+          example: false
         message:
           type: string
           example: 잘못된 요청입니다.
+        code:
+          type: integer
+          example: 9001
+        data:
+          nullable: true
 
     ActuatorHealthResponse:
       type: object
