@@ -1,0 +1,25 @@
+plugins {
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+}
+
+dependencies {
+    implementation project(':common')
+
+    implementation platform("io.github.jho951.platform:platform-governance-bom:2.0.1")
+    implementation platform("io.github.jho951.platform:platform-security-bom:2.0.3")
+    implementation 'io.github.jho951.platform:platform-governance-starter'
+    implementation 'io.github.jho951.platform:platform-security-starter'
+    implementation 'io.github.jho951.platform:platform-security-governance-bridge:1.0.1'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
+
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+    runtimeOnly 'com.h2database:h2'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="logback/logback-common.xml"/>
+
+    <springProfile name="local | dev">
+        <include resource="logback/logback-dev.xml"/>
+    </springProfile>
+
+    <springProfile name="prod | production | live">
+        <include resource="logback/logback-prod.xml"/>
+    </springProfile>
+
+    <springProfile name="!local &amp; !dev &amp; !prod &amp; !production &amp; !live">
+        <include resource="logback/logback-dev.xml"/>
+    </springProfile>
+</configuration>
