@@ -9,8 +9,9 @@ ehthumbs.db
 *.log
 
 # Gradle
-.gradle
+.gradle/
 build/
+**/build/
 !gradle/wrapper/gradle-wrapper.jar
 
 # secret
@@ -19,7 +20,7 @@ build/
 docker/.generated
 
 # IntelliJ
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
