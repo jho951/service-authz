@@ -1,0 +1,286 @@
+openapi: 3.0.3
+info:
+  title: authz-service Upstream API 문서
+  version: 1.0.0
+  description: |
+    Local copy of service-contract/repositories/authz-service upstream contract.
+    이 문서는 authz-service upstream route만 설명합니다.
+    Public /v1 route는 Gateway contract가 소유합니다.
+    이 서비스는 Gateway가 관리자 경로를 처리하기 전 내부 service-to-service 권한 검증을 제공합니다.
+servers:
+  - url: /
+    description: authz-service 직접 호출 기본 경로
+
+tags:
+  - name: Status
+    description: 서비스 상태와 오류 endpoint
+  - name: Internal
+    description: 내부 service-to-service 인가 API
+  - name: Actuator
+    description: Spring Boot Actuator 운영 endpoint
+
+paths:
+  /health:
+    get:
+      tags: [Status]
+      summary: Liveness 상태 조회
+      operationId: getHealth
+      responses:
+        '200':
+          description: 프로세스가 정상 동작 중입니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /ready:
+    get:
+      tags: [Status]
+      summary: Readiness 상태 조회
+      operationId: getReady
+      responses:
+        '200':
+          description: DB와 Redis 연결 상태를 포함한 readiness 결과입니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+
+  /error:
+    get:
+      tags: [Status]
+      summary: Spring 오류 endpoint 조회
+      operationId: getError
+      responses:
+        default:
+          description: 서블릿 컨테이너가 /error로 전달한 오류 응답입니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEndpointResponse'
+
+  /permissions/internal/admin/verify:
+    post:
+      tags: [Internal]
+      summary: 관리자 권한 검증
+      operationId: verifyAdminPermission
+      description: |
+        Gateway가 관리자 경로 요청을 upstream으로 전달하기 전에 호출합니다.
+        authz-service는 전달받은 사용자, 원본 HTTP method, 원본 path를 Authz DB의 role-permission 모델로 판정합니다.
+        `X-User-Role`은 권한 상승 근거로 사용하지 않습니다.
+      security:
+        - internalBearerKey: []
+        - internalApiKey: []
+      parameters:
+        - $ref: '#/components/parameters/InternalSecret'
+        - $ref: '#/components/parameters/InternalAuthorization'
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/OriginalMethod'
+        - $ref: '#/components/parameters/OriginalPath'
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: 권한 검증이 허용되었습니다. 응답 body는 없습니다.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+            X-Correlation-Id:
+              $ref: '#/components/headers/CorrelationId'
+        '400':
+          description: 필수 검증 header가 없거나 method/path 형식이 유효하지 않습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: 내부 caller proof 검증 실패 또는 권한 검증 거부입니다. 응답 body는 없을 수 있습니다.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+            X-Correlation-Id:
+              $ref: '#/components/headers/CorrelationId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /actuator/health:
+    get:
+      tags: [Actuator]
+      summary: Actuator health 조회
+      operationId: getActuatorHealth
+      responses:
+        '200':
+          description: Spring Boot Actuator health 응답입니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActuatorHealthResponse'
+
+  /actuator/prometheus:
+    get:
+      tags: [Actuator]
+      summary: Prometheus metrics 조회
+      operationId: getPrometheusMetrics
+      responses:
+        '200':
+          description: Prometheus text format metrics 응답입니다.
+          content:
+            text/plain:
+              schema:
+                type: string
+
+components:
+  securitySchemes:
+    internalApiKey:
+      type: apiKey
+      in: header
+      name: X-Internal-Request-Secret
+    internalBearerKey:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: "`Bearer <internal-service-jwt>` 형식의 internal caller proof입니다."
+
+  parameters:
+    InternalSecret:
+      name: X-Internal-Request-Secret
+      in: header
+      required: false
+      schema:
+        type: string
+      description: LEGACY_SECRET 또는 HYBRID 내부 인증 모드에서 사용하는 shared secret입니다.
+    InternalAuthorization:
+      name: Authorization
+      in: header
+      required: false
+      schema:
+        type: string
+        example: Bearer eyJhbGciOiJIUzI1NiJ9...
+      description: JWT 또는 HYBRID 내부 인증 모드에서 사용하는 internal service JWT입니다.
+    UserId:
+      name: X-User-Id
+      in: header
+      required: true
+      schema:
+        type: string
+        example: admin-seed
+      description: Gateway가 전달하는 인증 사용자 id입니다.
+    OriginalMethod:
+      name: X-Original-Method
+      in: header
+      required: true
+      schema:
+        type: string
+        enum: [GET, POST, PUT, PATCH, DELETE]
+      description: 클라이언트가 요청한 원본 HTTP method입니다.
+    OriginalPath:
+      name: X-Original-Path
+      in: header
+      required: true
+      schema:
+        type: string
+        example: /v1/admin/blocks
+      description: 클라이언트가 요청한 원본 path입니다.
+    RequestId:
+      name: X-Request-Id
+      in: header
+      required: false
+      schema:
+        type: string
+        example: debug-req-1
+      description: 요청 추적 id입니다. 누락되면 authz-service가 생성해 응답 header에 반영합니다.
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema:
+        type: string
+        example: debug-corr-1
+      description: cross-service correlation id입니다. 누락되면 authz-service가 생성해 응답 header에 반영합니다.
+
+  headers:
+    RequestId:
+      description: 요청 추적 id입니다.
+      schema:
+        type: string
+    CorrelationId:
+      description: cross-service correlation id입니다.
+      schema:
+        type: string
+
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: UP
+
+    ReadinessResponse:
+      type: object
+      required: [status, components]
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN]
+          example: UP
+        components:
+          type: object
+          required: [db, redis]
+          properties:
+            db:
+              type: string
+              enum: [UP, DOWN]
+              example: UP
+            redis:
+              type: string
+              enum: [UP, DOWN]
+              example: UP
+
+    ErrorEndpointResponse:
+      type: object
+      required: [status, error, message]
+      properties:
+        status:
+          type: integer
+          example: 500
+        error:
+          type: string
+          example: Internal Server Error
+        message:
+          type: string
+          example: Internal Server Error
+        path:
+          type: string
+          example: /permissions/internal/admin/verify
+        requestId:
+          type: string
+          example: debug-req-1
+        correlationId:
+          type: string
+          example: debug-corr-1
+
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: integer
+          example: 9001
+        message:
+          type: string
+          example: 잘못된 요청입니다.
+
+    ActuatorHealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: UP
+        components:
+          type: object
+          additionalProperties: true

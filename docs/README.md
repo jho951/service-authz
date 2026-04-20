@@ -4,7 +4,8 @@
 
 ## 문서 지도
 - [architecture.md](./architecture.md): 서비스 책임, 모듈 구조, 코드 경계, 채택 결정 요약
-- [auth-api.md](./auth-api.md): 인가 API, 헤더 계약, 응답 규칙, 감사 로그 계약
+- [api.md](./api.md): 인가 API, 헤더 계약, 응답 규칙, 감사 로그 계약
+- [openapi/authz-service.upstream.v1.yaml](./openapi/authz-service.upstream.v1.yaml): authz-service upstream OpenAPI 문서
 - [ci-and-implementation.md](./ci-and-implementation.md): 개발/검증 명령, CI, PR 규칙, 에이전트 작업 규칙
 - [database.md](./database.md): RBAC 테이블, seed 데이터, 캐시 모델
 - [docker.md](./docker.md): Dockerfile, dev/prod compose, 실행 스크립트, 환경변수
