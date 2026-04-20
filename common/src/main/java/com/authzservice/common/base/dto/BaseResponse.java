@@ -1,19 +1,21 @@
 package com.authzservice.common.base.dto;
 
-public record BaseResponse<T>(
-        boolean succeeded,
-        T data,
-        String message
-) {
-    public static <T> BaseResponse<T> success(T data) {
-        return new BaseResponse<>(true, data, null);
-    }
+import java.time.LocalDateTime;
 
-    public static BaseResponse<Void> success() {
-        return new BaseResponse<>(true, null, null);
-    }
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-    public static BaseResponse<Void> failure(String message) {
-        return new BaseResponse<>(false, null, message);
-    }
+@Getter
+@SuperBuilder
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public abstract class BaseResponse {
+
+    private Long version;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime modifiedAt;
 }
