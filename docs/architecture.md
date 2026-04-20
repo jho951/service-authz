@@ -30,7 +30,6 @@
 - `BaseResponse`
 - `ErrorCode`
 - `GlobalException`
-- `BadRequestException`
 - `GlobalExceptionHandler`
 
 `app`에는 실행 정책과 업무 흐름을 둡니다.

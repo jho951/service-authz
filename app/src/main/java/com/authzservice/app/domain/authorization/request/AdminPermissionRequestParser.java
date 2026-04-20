@@ -2,7 +2,8 @@ package com.authzservice.app.domain.authorization.request;
 
 import com.authzservice.app.domain.authorization.dto.AdminPermissionVerifyRequest;
 import com.authzservice.app.domain.authorization.support.PermissionHeaderNames;
-import com.authzservice.common.base.exception.BadRequestException;
+import com.authzservice.common.base.constant.ErrorCode;
+import com.authzservice.common.base.exception.GlobalException;
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
@@ -33,7 +34,7 @@ public class AdminPermissionRequestParser {
     private String requiredHeader(Map<String, String> headers, String key, String message) {
         String value = optionalHeader(headers, key);
         if (value == null || value.isBlank()) {
-            throw new BadRequestException(message);
+            throw new GlobalException(ErrorCode.INVALID_REQUEST, message);
         }
         return value;
     }
@@ -62,20 +63,20 @@ public class AdminPermissionRequestParser {
     private String normalizeMethod(String method) {
         String normalized = method.toUpperCase(Locale.ROOT);
         if (!ALLOWED_METHODS.contains(normalized)) {
-            throw new BadRequestException("허용하지 않는 HTTP Method입니다.");
+            throw new GlobalException(ErrorCode.INVALID_REQUEST, "허용하지 않는 HTTP Method입니다.");
         }
         return normalized;
     }
 
     private String normalizePath(String path) {
         if (!path.startsWith("/")) {
-            throw new BadRequestException("X-Original-Path는 '/'로 시작해야 합니다.");
+            throw new GlobalException(ErrorCode.INVALID_REQUEST, "X-Original-Path는 '/'로 시작해야 합니다.");
         }
         if (path.contains("..")) {
-            throw new BadRequestException("X-Original-Path에 '..'를 포함할 수 없습니다.");
+            throw new GlobalException(ErrorCode.INVALID_REQUEST, "X-Original-Path에 '..'를 포함할 수 없습니다.");
         }
         if (path.indexOf('\n') >= 0 || path.indexOf('\r') >= 0) {
-            throw new BadRequestException("X-Original-Path 형식이 잘못되었습니다.");
+            throw new GlobalException(ErrorCode.INVALID_REQUEST, "X-Original-Path 형식이 잘못되었습니다.");
         }
         return path;
     }

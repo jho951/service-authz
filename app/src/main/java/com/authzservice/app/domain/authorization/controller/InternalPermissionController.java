@@ -1,7 +1,5 @@
 package com.authzservice.app.domain.authorization.controller;
 
-import com.authzservice.common.base.exception.BadRequestException;
-import com.authzservice.common.swagger.SwaggerTag;
 import com.authzservice.app.domain.authorization.dto.AdminPermissionVerifyRequest;
 import com.authzservice.app.domain.authorization.model.Decision;
 import com.authzservice.app.domain.authorization.model.PermissionDecisionResult;
@@ -11,6 +9,9 @@ import com.authzservice.app.domain.authorization.support.PermissionHeaderNames;
 import com.authzservice.app.domain.audit.PermissionAuditLogger;
 import com.authzservice.app.security.InternalRequestAuthenticationResult;
 import com.authzservice.app.security.InternalRequestAuthenticator;
+import com.authzservice.common.base.constant.ErrorCode;
+import com.authzservice.common.base.exception.GlobalException;
+import com.authzservice.common.swagger.SwaggerTag;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -129,7 +130,10 @@ public class InternalPermissionController {
                     .header(PermissionHeaderNames.REQUEST_ID, requestId)
                     .header(PermissionHeaderNames.CORRELATION_ID, correlationId)
                     .build();
-        } catch (BadRequestException ex) {
+        } catch (GlobalException ex) {
+            if (ex.getErrorCode() != ErrorCode.INVALID_REQUEST) {
+                throw ex;
+            }
             auditLogger.log(
                     requestId,
                     correlationId,
