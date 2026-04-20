@@ -8,8 +8,18 @@ Dockerfile은 멀티스테이지 빌드를 사용합니다.
 3. `/app/authz-service.jar` 실행
 
 GitHub Packages dependency 해석을 위해 build arg를 전달합니다.
-- `GITHUB_ACTOR`
+- `GITHUB_ACTOR` 기본값: `jho951`
 - `GITHUB_TOKEN`
+
+이미지 runtime 기본값은 Dockerfile에 둡니다.
+- `SERVER_PORT=8084`
+- `REDIS_PORT=6379`
+- `REDIS_TIMEOUT_MS=1000ms`
+- `PLATFORM_SECURITY_ADMIN_ALLOW_CIDRS=10.0.0.0/8`
+- `PLATFORM_SECURITY_RATE_LIMIT_INTERNAL_REQUESTS=1000`
+- `PLATFORM_SECURITY_RATE_LIMIT_INTERNAL_WINDOW_SECONDS=60`
+
+compose는 profile, secret, host/network처럼 환경별로 달라지는 값만 선언합니다.
 
 ## 실행 스크립트
 ```bash
