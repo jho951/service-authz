@@ -1,0 +1,55 @@
+name: authz-dev
+
+services:
+  central-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_EXPOSE_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - service-shared
+
+  permission-service:
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile
+      args:
+        GITHUB_ACTOR: ${GITHUB_ACTOR:-jho951}
+        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    env_file:
+      - path: ../../.env.dev
+        required: false
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SERVER_PORT: ${SERVER_PORT:-8084}
+      PERMISSION_INTERNAL_REQUEST_SECRET: ${PERMISSION_INTERNAL_REQUEST_SECRET:-local-authz-internal-secret}
+      REDIS_HOST: ${REDIS_HOST:-central-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_TIMEOUT_MS: ${REDIS_TIMEOUT_MS:-1000ms}
+      PLATFORM_SECURITY_JWT_SECRET: ${PLATFORM_SECURITY_JWT_SECRET:-authz-platform-security-local-secret-authz-platform-security-local-secret}
+      PLATFORM_SECURITY_IP_GUARD_ENABLED: ${PLATFORM_SECURITY_IP_GUARD_ENABLED:-false}
+      PLATFORM_SECURITY_IP_GUARD_TRUST_PROXY: ${PLATFORM_SECURITY_IP_GUARD_TRUST_PROXY:-false}
+      PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS: ${PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS:-172.16.0.0/12,127.0.0.1,::1}
+      PLATFORM_SECURITY_ADMIN_ALLOW_CIDRS: ${PLATFORM_SECURITY_ADMIN_ALLOW_CIDRS:-10.0.0.0/8}
+      PLATFORM_SECURITY_RATE_LIMIT_ENABLED: ${PLATFORM_SECURITY_RATE_LIMIT_ENABLED:-false}
+      PLATFORM_SECURITY_RATE_LIMIT_INTERNAL_REQUESTS: ${PLATFORM_SECURITY_RATE_LIMIT_INTERNAL_REQUESTS:-1000}
+      PLATFORM_SECURITY_RATE_LIMIT_INTERNAL_WINDOW_SECONDS: ${PLATFORM_SECURITY_RATE_LIMIT_INTERNAL_WINDOW_SECONDS:-60}
+    depends_on:
+      central-redis:
+        condition: service_healthy
+    networks:
+      - service-shared
+
+networks:
+  service-shared:
+    external: true
+    name: ${SERVICE_SHARED_NETWORK:-${BACKEND_SHARED_NETWORK:-${MSA_SHARED_NETWORK:-service-backbone-shared}}}

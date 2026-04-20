@@ -1,0 +1,182 @@
+server:
+  port: 8084
+spring:
+  application:
+    name: authz-service
+  datasource:
+    url: jdbc:h2:mem:permission;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      timeout: ${REDIS_TIMEOUT_MS:1000ms}
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    display-request-duration: true
+    try-it-out-enabled: true
+    operations-sorter: alpha
+    doc-expansion: none
+  info:
+    title: Authz Service API
+    version: 0.1.0
+    description: Internal admin permission verification service for gateway.
+
+auditlog:
+  enabled: ${AUDITLOG_ENABLED:true}
+  service-name: ${AUDITLOG_SERVICE_NAME:${spring.application.name}}
+  env: ${AUDITLOG_ENV:local}
+  file-path: ${AUDITLOG_FILE_PATH:./logs/audit.log}
+  async-enabled: ${AUDITLOG_ASYNC_ENABLED:true}
+  async-thread-count: ${AUDITLOG_ASYNC_THREAD_COUNT:2}
+  async-queue-capacity: ${AUDITLOG_ASYNC_QUEUE_CAPACITY:1000}
+
+permission:
+  internal-auth:
+    mode: ${PERMISSION_INTERNAL_AUTH_MODE:HYBRID}
+    legacy-secret: ${PERMISSION_INTERNAL_REQUEST_SECRET:}
+    jwt:
+      secret: ${PERMISSION_INTERNAL_JWT_SECRET:}
+      issuer: ${PERMISSION_INTERNAL_JWT_ISSUER:api-gateway}
+      audience: ${PERMISSION_INTERNAL_JWT_AUDIENCE:authz-service}
+      clock-skew-seconds: ${PERMISSION_INTERNAL_JWT_CLOCK_SKEW_SECONDS:30}
+  cache:
+    prefix: ${PERMISSION_CACHE_PREFIX:perm:}
+    local-ttl-seconds: ${PERMISSION_CACHE_L1_TTL_SECONDS:5}
+    redis-ttl-seconds: ${PERMISSION_CACHE_L2_TTL_SECONDS:60}
+  seed:
+    sample-user-enabled: ${PERMISSION_SEED_SAMPLE_USER_ENABLED:false}
+  route-policy:
+    routes:
+      - methods: [GET, HEAD, OPTIONS, POST, PUT, PATCH, DELETE]
+        patterns: [/admin/manage, /admin/manage/**, /v1/admin/manage, /v1/admin/manage/**]
+        permission: ADMIN_MANAGE
+      - methods: [GET, HEAD, OPTIONS]
+        patterns: [/admin, /admin/**, /v1/admin, /v1/admin/**]
+        permission: ADMIN_READ
+      - methods: [POST, PUT, PATCH]
+        patterns: [/admin, /admin/**, /v1/admin, /v1/admin/**]
+        permission: ADMIN_WRITE
+      - methods: [DELETE]
+        patterns: [/admin, /admin/**, /v1/admin, /v1/admin/**]
+        permission: ADMIN_DELETE
+
+platform:
+  governance:
+    enabled: ${PLATFORM_GOVERNANCE_ENABLED:true}
+    audit:
+      enabled: ${PLATFORM_GOVERNANCE_AUDIT_ENABLED:true}
+      service-name: ${PLATFORM_GOVERNANCE_AUDIT_SERVICE_NAME:${spring.application.name}}
+      environment: ${PLATFORM_GOVERNANCE_AUDIT_ENVIRONMENT:${SPRING_PROFILES_ACTIVE:local}}
+      failure-policy: ${PLATFORM_GOVERNANCE_AUDIT_FAILURE_POLICY:FAIL_CLOSED}
+      identity:
+        enabled: ${PLATFORM_GOVERNANCE_AUDIT_IDENTITY_ENABLED:true}
+        validation-enabled: ${PLATFORM_GOVERNANCE_AUDIT_IDENTITY_VALIDATION_ENABLED:true}
+        fail-on-validation-error: ${PLATFORM_GOVERNANCE_AUDIT_IDENTITY_FAIL_ON_VALIDATION_ERROR:true}
+    engine:
+      strict: false
+    violation:
+      action: DENY
+      handler-failure-fatal: false
+    policy-config:
+      values:
+        authz.policy.publish.requires-approval: "true"
+    operational:
+      fail-fast-enabled: ${PLATFORM_GOVERNANCE_OPERATIONAL_FAIL_FAST_ENABLED:true}
+      production-profiles: ${PLATFORM_GOVERNANCE_OPERATIONAL_PRODUCTION_PROFILES:prod,production,live}
+      require-policy-config-in-enforcing-mode: ${PLATFORM_GOVERNANCE_OPERATIONAL_REQUIRE_POLICY_CONFIG_IN_ENFORCING_MODE:true}
+      require-fatal-handler-failures-in-production: ${PLATFORM_GOVERNANCE_OPERATIONAL_REQUIRE_FATAL_HANDLER_FAILURES_IN_PRODUCTION:true}
+  security:
+    enabled: ${PLATFORM_SECURITY_ENABLED:true}
+    service-role-preset: ${PLATFORM_SECURITY_SERVICE_ROLE_PRESET:INTERNAL_SERVICE}
+    audit:
+      mode: ${PLATFORM_SECURITY_AUDIT_MODE:DENY_AND_ADMIN}
+    boundary:
+      public-paths:
+        - /health
+        - /ready
+        - /actuator/health
+        - /actuator/health/**
+        - /v3/api-docs/**
+        - /swagger-ui/**
+        - /swagger-ui.html
+        - /favicon.ico
+        - /error
+      protected-paths: []
+      admin-paths: []
+      internal-paths:
+        - /permissions/internal/**
+    auth:
+      enabled: ${PLATFORM_SECURITY_AUTH_ENABLED:true}
+      default-mode: HYBRID
+      internal-token-enabled: ${PLATFORM_SECURITY_INTERNAL_TOKEN_ENABLED:false}
+      jwt-secret: ${PLATFORM_SECURITY_JWT_SECRET:${AUTHZ_PLATFORM_SECURITY_JWT_SECRET:authz-platform-security-local-secret-authz-platform-security-local-secret}}
+    ip-guard:
+      enabled: ${PLATFORM_SECURITY_IP_GUARD_ENABLED:false}
+      trust-proxy: ${PLATFORM_SECURITY_IP_GUARD_TRUST_PROXY:false}
+      trusted-proxy-cidrs: ${PLATFORM_SECURITY_TRUSTED_PROXY_CIDRS:}
+      admin:
+        rules: ${PLATFORM_SECURITY_ADMIN_ALLOW_CIDRS:${PLATFORM_SECURITY_ADMIN_ALLOW_CIDR:10.0.0.0/8}}
+      internal:
+        rules: ${PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS:${PLATFORM_SECURITY_INTERNAL_ALLOW_CIDR:127.0.0.1,::1}}
+    rate-limit:
+      enabled: ${PLATFORM_SECURITY_RATE_LIMIT_ENABLED:false}
+      anonymous:
+        requests: ${PLATFORM_SECURITY_RATE_LIMIT_ANONYMOUS_REQUESTS:60}
+        window-seconds: ${PLATFORM_SECURITY_RATE_LIMIT_ANONYMOUS_WINDOW_SECONDS:60}
+      authenticated:
+        requests: ${PLATFORM_SECURITY_RATE_LIMIT_AUTHENTICATED_REQUESTS:300}
+        window-seconds: ${PLATFORM_SECURITY_RATE_LIMIT_AUTHENTICATED_WINDOW_SECONDS:60}
+      internal:
+        requests: ${PLATFORM_SECURITY_RATE_LIMIT_INTERNAL_REQUESTS:1000}
+        window-seconds: ${PLATFORM_SECURITY_RATE_LIMIT_INTERNAL_WINDOW_SECONDS:60}
+    operational:
+      enabled: ${PLATFORM_SECURITY_OPERATIONAL_ENABLED:true}
+      production-profiles: ${PLATFORM_SECURITY_OPERATIONAL_PRODUCTION_PROFILES:prod,production,live}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  metrics:
+    tags:
+      service: ${spring.application.name}
+      env: ${SPRING_PROFILES_ACTIVE:local}
+
+logging:
+  level:
+    com.authzservice.app.config.logging.com.authzservice.config.logging.RequestAccessLogFilter: INFO
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod,production,live
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

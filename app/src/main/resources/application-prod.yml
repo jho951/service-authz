@@ -1,0 +1,69 @@
+platform:
+  governance:
+    audit:
+      enabled: true
+      service-name: ${PLATFORM_GOVERNANCE_AUDIT_SERVICE_NAME:${spring.application.name}}
+      environment: ${PLATFORM_GOVERNANCE_AUDIT_ENVIRONMENT:prod}
+      failure-policy: FAIL_CLOSED
+      identity:
+        enabled: true
+        validation-enabled: true
+        fail-on-validation-error: true
+    engine:
+      strict: true
+    violation:
+      action: DENY
+      handler-failure-fatal: true
+    policy-config:
+      values:
+        authz.policy.publish.requires-approval: "true"
+        authz.permission.wildcard.blocked: "true"
+    operational:
+      fail-fast-enabled: true
+      production-profiles: prod,production,live
+      require-audit-sink-in-production: false
+      require-policy-config-in-enforcing-mode: true
+      require-fatal-handler-failures-in-production: true
+  security:
+    enabled: true
+    service-role-preset: INTERNAL_SERVICE
+    auth:
+      enabled: true
+      internal-token-enabled: false
+      jwt-secret: ${PLATFORM_SECURITY_JWT_SECRET:${AUTHZ_PLATFORM_SECURITY_JWT_SECRET}}
+    ip-guard:
+      enabled: true
+      trust-proxy: ${PLATFORM_SECURITY_IP_GUARD_TRUST_PROXY:false}
+      trusted-proxy-cidrs: ${PLATFORM_SECURITY_TRUSTED_PROXY_CIDRS:}
+      admin:
+        rules: ${PLATFORM_SECURITY_ADMIN_ALLOW_CIDRS:${PLATFORM_SECURITY_ADMIN_ALLOW_CIDR:10.0.0.0/8}}
+      internal:
+        rules: ${PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS:${PLATFORM_SECURITY_INTERNAL_ALLOW_CIDR:172.16.0.0/12}}
+    rate-limit:
+      enabled: true
+      internal:
+        requests: ${PLATFORM_SECURITY_RATE_LIMIT_INTERNAL_REQUESTS:1000}
+        window-seconds: ${PLATFORM_SECURITY_RATE_LIMIT_INTERNAL_WINDOW_SECONDS:60}
+    operational:
+      enabled: true
+      production-profiles: prod,production,live
+
+permission:
+  internal-auth:
+    mode: JWT
+    jwt:
+      secret: ${PERMISSION_INTERNAL_JWT_SECRET:${AUTHZ_INTERNAL_JWT_SECRET:}}
+      issuer: ${PERMISSION_INTERNAL_JWT_ISSUER:api-gateway}
+      audience: ${PERMISSION_INTERNAL_JWT_AUDIENCE:authz-service}
+  seed:
+    sample-user-enabled: false
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+logging:
+  level:
+    com.authzservice.app.config.logging.com.authzservice.config.logging.RequestAccessLogFilter: INFO
