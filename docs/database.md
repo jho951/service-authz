@@ -21,14 +21,16 @@ Permission:
 - `user_roles`
 
 ## ID 정책
-- 모든 JPA entity의 공통 `id`는 UUID 문자열입니다.
-- DB column은 `varchar(36)` 기준으로 관리합니다.
-- UUID 값은 Java `BaseEntity`의 `@PrePersist`에서 생성합니다.
-- 운영 seed SQL은 PostgreSQL `gen_random_uuid()::text`로 `varchar(36)` id를 명시 삽입합니다.
+- 모든 JPA entity의 공통 `id`는 Java `UUID`입니다.
+- DB column은 `char(36)` 기준으로 관리합니다.
+- UUID 값은 `BaseEntity`의 `@GeneratedValue(strategy = GenerationType.UUID)`로 생성합니다.
+- 운영 seed SQL은 PostgreSQL `gen_random_uuid()::text`로 id를 명시 삽입합니다.
 
 ## Entity 기준
 - 모든 JPA entity는 `BaseEntity`를 상속합니다.
 - 공통 entity 기반 타입은 `common` 모듈에 둡니다.
+- 공통 감사 컬럼은 `version`, `created_at`, `modified_at`입니다.
+- `created_at`, `modified_at`은 Spring Data JPA Auditing으로 관리합니다.
 
 ## 권한 계산
 - 권한 계산은 `X-User-Id`로 조회한 `user_roles`를 기준으로 합니다.

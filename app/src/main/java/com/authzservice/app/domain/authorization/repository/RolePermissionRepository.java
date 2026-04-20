@@ -10,8 +10,9 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
-public interface RolePermissionRepository extends JpaRepository<RolePermissionEntity, String> {
+public interface RolePermissionRepository extends JpaRepository<RolePermissionEntity, UUID> {
 
     @Query("""
             select p.code
