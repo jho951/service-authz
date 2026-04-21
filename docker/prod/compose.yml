@@ -1,13 +1,10 @@
 services:
-  permission-service:
-    build:
-      args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN:?GITHUB_TOKEN is required}
+  authz-service:
     restart: always
-    ports:
-      - "${AUTHZ_SERVICE_HOST_BIND:?AUTHZ_SERVICE_HOST_BIND is required}:${AUTHZ_SERVICE_HOST_PORT:-8084}:8084"
+    expose:
+      - "8084"
     env_file:
-      - path: ../.env.prod
+      - path: ../../.env.prod
         required: false
     environment:
       SPRING_PROFILES_ACTIVE: prod

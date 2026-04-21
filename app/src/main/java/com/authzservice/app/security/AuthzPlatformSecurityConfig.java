@@ -21,10 +21,13 @@ public class AuthzPlatformSecurityConfig {
     private static final String INTERNAL_PRINCIPAL = "authz-internal-caller";
 
     @Bean
-    public SecurityContextResolver authzSecurityContextResolver() {
+    public SecurityContextResolver authzSecurityContextResolver(
+            InternalRequestAuthenticator internalRequestAuthenticator,
+            InternalRequestAuthenticationProperties properties
+    ) {
         return request -> {
             if (isInternalPermissionPath(request.path())) {
-                return new SecurityContext(true, INTERNAL_PRINCIPAL, Set.of("ROLE_INTERNAL"), Map.of());
+                return resolveInternalContext(request.attributes().get("auth.accessToken"), internalRequestAuthenticator, properties);
             }
             return new SecurityContext(false, null, Set.of(), Map.of());
         };
@@ -68,5 +71,36 @@ public class AuthzPlatformSecurityConfig {
 
     private static boolean isInternalPermissionPath(String path) {
         return path != null && (path.equals("/permissions/internal") || path.startsWith("/permissions/internal/"));
+    }
+
+    private static SecurityContext resolveInternalContext(
+            String accessToken,
+            InternalRequestAuthenticator internalRequestAuthenticator,
+            InternalRequestAuthenticationProperties properties
+    ) {
+        return switch (properties.getMode()) {
+            case JWT -> toInternalSecurityContext(internalRequestAuthenticator.authenticateAccessToken(accessToken));
+            case HYBRID -> {
+                if (accessToken != null && !accessToken.isBlank()) {
+                    InternalRequestAuthenticationResult tokenResult = internalRequestAuthenticator.authenticateAccessToken(accessToken);
+                    if (tokenResult.allowed()) {
+                        yield trustedInternalContext();
+                    }
+                }
+                yield trustedInternalContext();
+            }
+            case LEGACY_SECRET, DISABLED -> trustedInternalContext();
+        };
+    }
+
+    private static SecurityContext toInternalSecurityContext(InternalRequestAuthenticationResult result) {
+        if (result.allowed()) {
+            return trustedInternalContext();
+        }
+        return new SecurityContext(false, null, Set.of(), Map.of());
+    }
+
+    private static SecurityContext trustedInternalContext() {
+        return new SecurityContext(true, INTERNAL_PRINCIPAL, Set.of("ROLE_INTERNAL"), Map.of());
     }
 }

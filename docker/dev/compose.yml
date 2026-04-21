@@ -5,7 +5,7 @@ services:
     expose:
       - "8084"
     env_file:
-      - path: ../.env.dev
+      - path: ../../.env.dev
         required: false
     environment:
       SPRING_PROFILES_ACTIVE: dev

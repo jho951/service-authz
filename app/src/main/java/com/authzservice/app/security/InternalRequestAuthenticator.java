@@ -59,17 +59,23 @@ public class InternalRequestAuthenticator {
     }
 
     private InternalRequestAuthenticationResult authenticateJwt(Map<String, String> headers) {
-        String secret = properties.getJwt().getSecret();
-        if (secret == null || secret.isBlank()) {
-            return InternalRequestAuthenticationResult.deny("JWT_SECRET_NOT_CONFIGURED");
-        }
         String authorization = resolveHeader(headers, PermissionHeaderNames.AUTHORIZATION);
         if (authorization == null || !authorization.startsWith("Bearer ")) {
             return InternalRequestAuthenticationResult.deny("JWT_MISSING");
         }
+        return authenticateAccessToken(authorization.substring("Bearer ".length()).trim());
+    }
+
+    public InternalRequestAuthenticationResult authenticateAccessToken(String token) {
+        String secret = properties.getJwt().getSecret();
+        if (secret == null || secret.isBlank()) {
+            return InternalRequestAuthenticationResult.deny("JWT_SECRET_NOT_CONFIGURED");
+        }
+        if (token == null || token.isBlank()) {
+            return InternalRequestAuthenticationResult.deny("JWT_MISSING");
+        }
 
         try {
-            String token = authorization.substring("Bearer ".length()).trim();
             String[] parts = token.split("\\.");
             if (parts.length != 3) {
                 return InternalRequestAuthenticationResult.deny("JWT_MALFORMED");
