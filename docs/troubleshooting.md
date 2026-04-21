@@ -149,7 +149,7 @@ bash scripts/run.docker.sh up prod
 
 ## Gateway 내부 호출 검증 확인
 1. 운영에서는 Authz와 Gateway에 같은 internal JWT secret을 설정합니다.
-- Authz: `PERMISSION_INTERNAL_JWT_SECRET=<jwt-secret>`
+- Authz: `AUTHZ_INTERNAL_JWT_SECRET=<jwt-secret>`
 - Gateway: 같은 secret으로 Authz 호출용 internal service JWT를 서명합니다.
 2. Gateway를 통해 관리자 경로를 호출합니다.
 3. 기대 결과:

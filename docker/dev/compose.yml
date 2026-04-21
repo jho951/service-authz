@@ -1,19 +1,6 @@
 services:
-  central-redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes"]
-    ports:
-      - "${REDIS_EXPOSE_PORT:-6379}:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-    networks:
-      - service-shared
-
-  permission-service:
+  authz-service:
+    container_name: authz-service-1
     restart: unless-stopped
     ports:
       - "8084:8084"
@@ -26,8 +13,5 @@ services:
       REDIS_HOST: ${REDIS_HOST:-central-redis}
       PLATFORM_SECURITY_JWT_SECRET: ${PLATFORM_SECURITY_JWT_SECRET:-authz-platform-security-local-secret-authz-platform-security-local-secret}
       PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS: ${PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS:-172.16.0.0/12,127.0.0.1,::1}
-    depends_on:
-      central-redis:
-        condition: service_healthy
     networks:
       - service-shared

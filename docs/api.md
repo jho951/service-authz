@@ -17,7 +17,7 @@
 - `X-Internal-Request-Secret`
 - `Authorization: Bearer <internal-service-jwt>`
 
-내부 호출자 검증은 `permission.internal-auth.mode`로 결정합니다. 운영 profile은 `JWT` 모드를 사용하며, Gateway는 `PERMISSION_INTERNAL_JWT_SECRET`로 서명한 internal service JWT를 `Authorization` 헤더에 전달해야 합니다. local/test에서는 `LEGACY_SECRET` 또는 `HYBRID` 모드로 `X-Internal-Request-Secret`을 사용할 수 있습니다.
+내부 호출자 검증은 `permission.internal-auth.mode`로 결정합니다. 운영 profile은 `JWT` 모드를 사용하며, Gateway는 `AUTHZ_INTERNAL_JWT_SECRET`로 서명한 internal service JWT를 `Authorization` 헤더에 전달해야 합니다. local/test에서는 `LEGACY_SECRET` 또는 `HYBRID` 모드로 `X-Internal-Request-Secret`을 사용할 수 있습니다.
 
 ## 판정 규칙
 - `permission.route-policy.routes` 설정으로 method/path를 `PermissionCode`에 매핑합니다.

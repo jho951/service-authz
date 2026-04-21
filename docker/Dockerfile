@@ -1,19 +1,30 @@
+# syntax=docker/dockerfile:1.7
+
 FROM gradle:8.14-jdk17 AS builder
 
 WORKDIR /workspace
 
-ARG GITHUB_ACTOR=jho951
-ARG GITHUB_TOKEN
-ENV GITHUB_ACTOR=${GITHUB_ACTOR}
-ENV GITHUB_TOKEN=${GITHUB_TOKEN}
-
 COPY gradle gradle
 COPY gradlew gradlew
 COPY settings.gradle build.gradle ./
+COPY common/build.gradle common/build.gradle
+COPY app/build.gradle app/build.gradle
+
+RUN chmod +x ./gradlew
+RUN --mount=type=secret,id=gh_token,required=false \
+    --mount=type=secret,id=github_actor,required=false \
+    if [ -f /run/secrets/gh_token ]; then export GH_TOKEN="$(cat /run/secrets/gh_token)"; fi; \
+    if [ -f /run/secrets/github_actor ]; then export GITHUB_ACTOR="$(cat /run/secrets/github_actor)"; fi; \
+    ./gradlew :app:dependencies --no-daemon >/dev/null
+
 COPY common common
 COPY app app
 
-RUN ./gradlew :app:bootJar -x test --no-daemon
+RUN --mount=type=secret,id=gh_token,required=false \
+    --mount=type=secret,id=github_actor,required=false \
+    if [ -f /run/secrets/gh_token ]; then export GH_TOKEN="$(cat /run/secrets/gh_token)"; fi; \
+    if [ -f /run/secrets/github_actor ]; then export GITHUB_ACTOR="$(cat /run/secrets/github_actor)"; fi; \
+    ./gradlew :app:bootJar -x test --no-daemon
 
 FROM eclipse-temurin:17-jre
 

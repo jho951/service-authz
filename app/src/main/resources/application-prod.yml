@@ -52,9 +52,9 @@ permission:
   internal-auth:
     mode: JWT
     jwt:
-      secret: ${PERMISSION_INTERNAL_JWT_SECRET:${AUTHZ_INTERNAL_JWT_SECRET:}}
-      issuer: ${PERMISSION_INTERNAL_JWT_ISSUER:api-gateway}
-      audience: ${PERMISSION_INTERNAL_JWT_AUDIENCE:authz-service}
+      secret: ${AUTHZ_INTERNAL_JWT_SECRET:${PERMISSION_INTERNAL_JWT_SECRET:}}
+      issuer: ${AUTHZ_INTERNAL_JWT_ISSUER:${PERMISSION_INTERNAL_JWT_ISSUER:api-gateway}}
+      audience: ${AUTHZ_INTERNAL_JWT_AUDIENCE:${PERMISSION_INTERNAL_JWT_AUDIENCE:authz-service}}
   seed:
     sample-user-enabled: false
 
