@@ -2,8 +2,8 @@ services:
   authz-service:
     container_name: authz-service-1
     restart: unless-stopped
-    ports:
-      - "8084:8084"
+    expose:
+      - "8084"
     env_file:
       - path: ../.env.dev
         required: false
