@@ -19,13 +19,13 @@ variable "environment" {
 variable "service_name" {
   description = "Logical service name from service-contract."
   type        = string
-  default     = "authz-server"
+  default     = "authz-service"
 }
 
 variable "service_runtime_name" {
   description = "Container name inside the ECS task."
   type        = string
-  default     = "permission-service"
+  default     = "authz-service"
 }
 
 variable "service_role" {

@@ -2,8 +2,8 @@ aws_region   = "ap-northeast-2"
 project_name = "msa"
 environment  = "prod"
 
-service_name         = "authz-server"
-service_runtime_name = "permission-service"
+service_name         = "authz-service"
+service_runtime_name = "authz-service"
 service_role         = "app-service"
 
 vpc_cidr             = "10.23.0.0/16"

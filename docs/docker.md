@@ -7,9 +7,9 @@ Dockerfile은 멀티스테이지 빌드를 사용합니다.
 2. `eclipse-temurin:17-jre` runtime image에 `/workspace/app/build/libs/*.jar` 복사
 3. `/app/authz-service.jar` 실행
 
-GitHub Packages dependency 해석을 위해 build arg를 전달합니다.
+GitHub Packages dependency 해석은 build secret 또는 환경 변수로 처리합니다.
 - `GITHUB_ACTOR` 기본값: `jho951`
-- `GITHUB_TOKEN`
+- `GITHUB_TOKEN` 또는 `GH_TOKEN`
 
 이미지 runtime 기본값은 Dockerfile에 둡니다.
 - `SERVER_PORT=8084`
@@ -44,7 +44,7 @@ bash scripts/run.docker.sh up prod
 
 ## Compose 구성
 `docker/compose.yml`은 공통 base compose입니다.
-- `permission-service` build 설정
+- `authz-service` build 설정
 - `service-shared` external network
 
 환경별 compose는 base compose와 함께 사용합니다.
@@ -57,7 +57,7 @@ docker compose -f docker/compose.yml -f docker/prod/compose.yml config
 ## dev compose
 `docker/dev/compose.yml`은 dev override와 Redis를 포함합니다.
 - `central-redis`
-- `permission-service`
+- `authz-service`
 
 dev Redis:
 - image: `redis:7-alpine`
@@ -72,11 +72,9 @@ dev Authz:
 - platform-security IP guard/rate limit은 기본 비활성화
 
 ## prod compose
-`docker/prod/compose.yml`은 `permission-service`를 운영 profile로 실행하는 override입니다.
+`docker/prod/compose.yml`은 `authz-service`를 운영 profile로 실행하는 override입니다.
 
 필수 환경변수:
-- `GITHUB_TOKEN`
-- `AUTHZ_SERVICE_HOST_BIND`
 - `AUTHZ_INTERNAL_JWT_SECRET`
 - `REDIS_HOST`
 - `PLATFORM_SECURITY_JWT_SECRET`

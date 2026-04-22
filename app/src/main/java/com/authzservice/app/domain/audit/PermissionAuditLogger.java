@@ -1,8 +1,11 @@
 package com.authzservice.app.domain.audit;
 
+import com.auditlog.api.AuditActorType;
+import com.auditlog.api.AuditEvent;
+import com.auditlog.api.AuditEventType;
+import com.auditlog.api.AuditLogger;
+import com.auditlog.api.AuditResult;
 import com.authzservice.app.domain.authorization.model.Decision;
-import io.github.jho951.platform.governance.api.AuditEntry;
-import io.github.jho951.platform.governance.api.AuditLogRecorder;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -12,14 +15,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class PermissionAuditLogger {
     private final boolean enabled;
-    private final AuditLogRecorder recorder;
+    private final AuditLogger auditLogger;
 
     public PermissionAuditLogger(
             @Value("${auditlog.enabled:true}") boolean enabled,
-            AuditLogRecorder recorder
+            AuditLogger auditLogger
     ) {
         this.enabled = enabled;
-        this.recorder = recorder;
+        this.auditLogger = auditLogger;
     }
 
     public void log(String requestId,
@@ -44,7 +47,18 @@ public class PermissionAuditLogger {
         attributes.put("reason", valueOrDash(reason));
         attributes.put("latencyMs", String.valueOf(latencyMs));
 
-        recorder.record(new AuditEntry("authz", "AUTHZ_ADMIN_VERIFY", attributes, Instant.now()));
+        auditLogger.log(
+                AuditEvent.builder(AuditEventType.READ, "AUTHZ_ADMIN_VERIFY")
+                        .occurredAt(Instant.now())
+                        .actor(valueOrDash(userId), AuditActorType.USER, valueOrDash(userId))
+                        .resource("AUTHZ_POLICY", valueOrDash(path))
+                        .result(decision == Decision.ALLOW ? AuditResult.SUCCESS : AuditResult.FAILURE)
+                        .reason(valueOrDash(reason))
+                        .requestId(valueOrDash(requestId))
+                        .traceId(valueOrDash(correlationId))
+                        .details(new LinkedHashMap<>(attributes))
+                        .build()
+        );
     }
 
     private static String valueOrDash(String value) {

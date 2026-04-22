@@ -1,4 +1,4 @@
-# authz-server Terraform
+# authz-service Terraform
 
 This stack follows the MSA Terraform contract and provisions an ECS/Fargate Blue/Green deployment baseline.
 
@@ -57,7 +57,7 @@ Resources:
       Properties:
         TaskDefinition: "<new-task-definition-arn>"
         LoadBalancerInfo:
-          ContainerName: "permission-service"
+          ContainerName: "authz-service"
           ContainerPort: 8084
 ```
 
