@@ -127,6 +127,9 @@ platform:
       default-mode: HYBRID
       internal-token-enabled: ${PLATFORM_SECURITY_INTERNAL_TOKEN_ENABLED:false}
       jwt-secret: ${PLATFORM_SECURITY_JWT_SECRET:${AUTHZ_PLATFORM_SECURITY_JWT_SECRET:authz-platform-security-local-secret-authz-platform-security-local-secret}}
+      legacy-secret:
+        enabled: ${PLATFORM_SECURITY_LEGACY_SECRET_ENABLED:true}
+        secret: ${PLATFORM_SECURITY_LEGACY_SECRET_SECRET:${permission.internal-auth.legacy-secret:${PERMISSION_INTERNAL_REQUEST_SECRET:}}}
     ip-guard:
       enabled: ${PLATFORM_SECURITY_IP_GUARD_ENABLED:false}
       trust-proxy: ${PLATFORM_SECURITY_IP_GUARD_TRUST_PROXY:false}

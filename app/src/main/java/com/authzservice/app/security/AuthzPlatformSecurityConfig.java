@@ -1,11 +1,15 @@
 package com.authzservice.app.security;
 
+import com.authzservice.app.domain.authorization.support.PermissionHeaderNames;
 import io.github.jho951.platform.security.api.SecurityContext;
 import io.github.jho951.platform.security.api.SecurityContextResolver;
-import jakarta.servlet.Filter;
+import io.github.jho951.platform.security.auth.PlatformAuthenticatedPrincipal;
+import io.github.jho951.platform.security.auth.PlatformSessionSupportFactory;
+import io.github.jho951.platform.security.web.SecurityFailureResponse;
+import io.github.jho951.platform.security.web.SecurityFailureResponseWriter;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,24 +23,45 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class AuthzPlatformSecurityConfig {
 
     private static final String INTERNAL_PRINCIPAL = "authz-internal-caller";
+    private static final Set<String> INTERNAL_AUTHORITIES = Set.of("ROLE_INTERNAL");
+
+    @Bean
+    public PlatformSessionSupportFactory authzPlatformSessionSupportFactory(
+            InternalRequestAuthenticator internalRequestAuthenticator
+    ) {
+        return () -> (accessToken, sessionId) -> authenticateInternalAccessToken(accessToken, internalRequestAuthenticator);
+    }
 
     @Bean
     public SecurityContextResolver authzSecurityContextResolver(
-            InternalRequestAuthenticator internalRequestAuthenticator,
-            InternalRequestAuthenticationProperties properties
+            AuthzInternalRequestAuthorizer authorizer
     ) {
         return request -> {
             if (isInternalPermissionPath(request.path())) {
-                return resolveInternalContext(request.attributes().get("auth.accessToken"), internalRequestAuthenticator, properties);
+                return authorizer.resolveInternalContext(request);
             }
-            return new SecurityContext(false, null, Set.of(), Map.of());
+            return anonymousContext(request.attributes());
+        };
+    }
+
+    @Bean
+    public SecurityFailureResponseWriter authzSecurityFailureResponseWriter() {
+        SecurityFailureResponseWriter delegate = SecurityFailureResponseWriter.json();
+        return (request, response, failure) -> {
+            if (isInternalPermissionPath(request.getRequestURI())
+                    && failure.status() == 401
+                    && hasText(request.getHeader(PermissionHeaderNames.INTERNAL_REQUEST_SECRET))) {
+                delegate.write(request, response, new SecurityFailureResponse(403, "security.denied", failure.message()));
+                return;
+            }
+            delegate.write(request, response, failure);
         };
     }
 
     @Bean
     public SecurityFilterChain authzSecurityFilterChain(
             HttpSecurity http,
-            @Qualifier("securityServletFilter") ObjectProvider<Filter> platformSecurityServletFilterProvider
+            @Qualifier("securityServletFilter") jakarta.servlet.Filter platformSecurityServletFilter
     ) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -61,10 +86,7 @@ public class AuthzPlatformSecurityConfig {
                         .anyRequest().denyAll()
                 );
 
-        Filter platformSecurityServletFilter = platformSecurityServletFilterProvider.getIfAvailable();
-        if (platformSecurityServletFilter != null) {
-            http.addFilterBefore(platformSecurityServletFilter, UsernamePasswordAuthenticationFilter.class);
-        }
+        http.addFilterBefore(platformSecurityServletFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -73,34 +95,25 @@ public class AuthzPlatformSecurityConfig {
         return path != null && (path.equals("/permissions/internal") || path.startsWith("/permissions/internal/"));
     }
 
-    private static SecurityContext resolveInternalContext(
+    private static boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private static Optional<PlatformAuthenticatedPrincipal> authenticateInternalAccessToken(
             String accessToken,
-            InternalRequestAuthenticator internalRequestAuthenticator,
-            InternalRequestAuthenticationProperties properties
+            InternalRequestAuthenticator internalRequestAuthenticator
     ) {
-        return switch (properties.getMode()) {
-            case JWT -> toInternalSecurityContext(internalRequestAuthenticator.authenticateAccessToken(accessToken));
-            case HYBRID -> {
-                if (accessToken != null && !accessToken.isBlank()) {
-                    InternalRequestAuthenticationResult tokenResult = internalRequestAuthenticator.authenticateAccessToken(accessToken);
-                    if (tokenResult.allowed()) {
-                        yield trustedInternalContext();
-                    }
-                }
-                yield trustedInternalContext();
-            }
-            case LEGACY_SECRET, DISABLED -> trustedInternalContext();
-        };
-    }
-
-    private static SecurityContext toInternalSecurityContext(InternalRequestAuthenticationResult result) {
-        if (result.allowed()) {
-            return trustedInternalContext();
+        if (accessToken == null || accessToken.isBlank()) {
+            return Optional.empty();
         }
-        return new SecurityContext(false, null, Set.of(), Map.of());
+        InternalRequestAuthenticationResult result = internalRequestAuthenticator.authenticateAccessToken(accessToken);
+        if (!result.allowed()) {
+            return Optional.empty();
+        }
+        return Optional.of(new PlatformAuthenticatedPrincipal(INTERNAL_PRINCIPAL, INTERNAL_AUTHORITIES, Map.of()));
     }
 
-    private static SecurityContext trustedInternalContext() {
-        return new SecurityContext(true, INTERNAL_PRINCIPAL, Set.of("ROLE_INTERNAL"), Map.of());
+    private static SecurityContext anonymousContext(Map<String, String> attributes) {
+        return new SecurityContext(false, null, Set.of(), attributes);
     }
 }

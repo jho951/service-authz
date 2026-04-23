@@ -7,8 +7,6 @@ import com.authzservice.app.domain.authorization.request.AdminPermissionRequestP
 import com.authzservice.app.domain.authorization.service.AdminPermissionVerifier;
 import com.authzservice.app.domain.authorization.support.PermissionHeaderNames;
 import com.authzservice.app.domain.audit.PermissionAuditLogger;
-import com.authzservice.app.security.InternalRequestAuthenticationResult;
-import com.authzservice.app.security.InternalRequestAuthenticator;
 import com.authzservice.common.base.constant.ErrorCode;
 import com.authzservice.common.base.exception.GlobalException;
 import com.authzservice.common.swagger.SwaggerTag;
@@ -37,16 +35,13 @@ public class InternalPermissionController {
     private final AdminPermissionRequestParser requestParser;
     private final AdminPermissionVerifier verifier;
     private final PermissionAuditLogger auditLogger;
-    private final InternalRequestAuthenticator internalRequestAuthenticator;
 
     public InternalPermissionController(AdminPermissionRequestParser requestParser,
                                         AdminPermissionVerifier verifier,
-                                        PermissionAuditLogger auditLogger,
-                                        InternalRequestAuthenticator internalRequestAuthenticator) {
+                                        PermissionAuditLogger auditLogger) {
         this.requestParser = requestParser;
         this.verifier = verifier;
         this.auditLogger = auditLogger;
-        this.internalRequestAuthenticator = internalRequestAuthenticator;
     }
 
     @PostMapping("/verify")
@@ -79,24 +74,6 @@ public class InternalPermissionController {
         String userId = resolveHeader(headers, PermissionHeaderNames.USER_ID);
         String method = resolveHeader(headers, PermissionHeaderNames.ORIGINAL_METHOD);
         String path = resolveHeader(headers, PermissionHeaderNames.ORIGINAL_PATH);
-
-        InternalRequestAuthenticationResult authenticationResult = internalRequestAuthenticator.authenticate(headers);
-        if (!authenticationResult.allowed()) {
-            auditLogger.log(
-                    requestId,
-                    correlationId,
-                    userId,
-                    method,
-                    path,
-                    Decision.DENY,
-                    authenticationResult.reason(),
-                    System.currentTimeMillis() - startedAt
-            );
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .header(PermissionHeaderNames.REQUEST_ID, requestId)
-                    .header(PermissionHeaderNames.CORRELATION_ID, correlationId)
-                    .build();
-        }
 
         try {
             AdminPermissionVerifyRequest parsed = requestParser.parse(headers);
