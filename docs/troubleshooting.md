@@ -48,6 +48,31 @@ curl -i -X POST http://localhost:8084/permissions/internal/admin/verify \
 
 기대 결과: `403 FORBIDDEN`
 
+## Gateway 관리자 경로가 403이고 일반 보호 경로는 정상임
+
+증상:
+
+- `GET /v1/admin/**` 같은 관리자 경로만 Gateway에서 `403`을 반환합니다.
+- 같은 시점에 `user-service`, `editor-service` 같은 일반 보호 경로는 정상일 수 있습니다.
+
+원인:
+
+- Authz는 일반 보호 서비스 전파용 `aud=internal-services` 토큰을 받는 서비스가 아닙니다.
+- Authz는 `AUTHZ_INTERNAL_JWT_*` 계약의 caller proof JWT 또는 legacy secret을 검증합니다.
+- Gateway가 잘못된 audience, secret, issuer로 admin verify를 호출하면 권한 계산 전에 거부됩니다.
+
+확인:
+
+- Gateway의 `AUTHZ_INTERNAL_JWT_SECRET`, `AUTHZ_INTERNAL_JWT_ISSUER`, `AUTHZ_INTERNAL_JWT_AUDIENCE`
+- Authz의 `permission.internal-auth.jwt.secret`, `issuer`, `audience`
+- `AUTHZ_INTERNAL_JWT_AUDIENCE=authz-service`가 유지되는지 확인합니다.
+
+조치:
+
+- Authz 호출은 일반 `internal-services` 토큰과 분리된 caller proof JWT로 유지합니다.
+- 운영에서는 Gateway와 Authz의 `AUTHZ_INTERNAL_JWT_*` 값을 정확히 일치시킵니다.
+- local/test에서 legacy secret을 함께 쓰는 경우 `PERMISSION_INTERNAL_REQUEST_SECRET`도 같이 맞춥니다.
+
 ## 거부 케이스
 ```bash
 curl -i -X POST http://localhost:8084/permissions/internal/admin/verify \
@@ -156,3 +181,4 @@ bash scripts/run.docker.sh up prod
 - Gateway가 Authz verify 호출에 `Authorization: Bearer <internal-service-jwt>`를 포함합니다.
 - JWT가 유효하면 Authz는 DB 권한 기준으로 `200 OK` 또는 `403 FORBIDDEN`을 반환합니다.
 - JWT가 유효하지 않으면 Authz는 권한 계산 전에 `403 FORBIDDEN`을 반환합니다.
+- 이 JWT는 일반 보호 서비스용 `aud=internal-services` 토큰이 아니라 `aud=authz-service` caller proof 토큰이어야 합니다.
