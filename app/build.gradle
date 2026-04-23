@@ -6,9 +6,9 @@ plugins {
 dependencies {
     implementation project(':common')
 
-    implementation platform("io.github.jho951.platform:platform-runtime-bom:3.0.0")
-    implementation platform("io.github.jho951.platform:platform-governance-bom:3.0.0")
-    implementation platform("io.github.jho951.platform:platform-security-bom:3.0.0")
+    implementation platform("io.github.jho951.platform:platform-runtime-bom:3.0.1")
+    implementation platform("io.github.jho951.platform:platform-governance-bom:3.0.1")
+    implementation platform("io.github.jho951.platform:platform-security-bom:3.0.1")
     implementation 'io.github.jho951.platform:platform-governance-starter'
     implementation 'io.github.jho951.platform:platform-security-starter'
     implementation 'io.github.jho951.platform:platform-security-legacy-compat'
