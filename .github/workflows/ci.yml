@@ -31,8 +31,20 @@ env:
   TEST_COMMAND: ./gradlew --no-daemon clean test
   BUILD_COMMAND: ./gradlew --no-daemon :app:bootJar -x test
   COMPOSE_CONFIG_COMMAND: |
+    export AUTHZ_SERVICE_IMAGE=123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/dev-authz-service:test
+    export PERMISSION_INTERNAL_REQUEST_SECRET=ci-secret
+    export AUTHZ_INTERNAL_JWT_SECRET=ci-authz-secret
+    export REDIS_HOST=redis
+    export PLATFORM_SECURITY_JWT_SECRET=authz-platform-security-ci-secret-authz-platform-security-ci-secret
+    export PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS=127.0.0.1
     docker compose -f docker/compose.yml -f docker/dev/compose.yml config >/tmp/authz-dev.yml
-    GITHUB_TOKEN=ci-token PERMISSION_INTERNAL_REQUEST_SECRET=ci-secret AUTHZ_INTERNAL_JWT_SECRET=ci-authz-secret REDIS_HOST=redis AUTHZ_SERVICE_HOST_BIND=127.0.0.1 PLATFORM_SECURITY_JWT_SECRET=authz-platform-security-ci-secret-authz-platform-security-ci-secret PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS=127.0.0.1 AUTHZ_SPRING_DATASOURCE_URL=jdbc:mysql://authz-mysql:3306/authz_service_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC AUTHZ_SPRING_DATASOURCE_USERNAME=authz_user AUTHZ_SPRING_DATASOURCE_PASSWORD=authz_password AUTHZ_PLATFORM_SECURITY_RATE_LIMIT_ENABLED=true docker compose -f docker/compose.yml -f docker/prod/compose.yml config >/tmp/authz-prod.yml
+    export AUTHZ_SERVICE_IMAGE=123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/prod-authz-service:test
+    export AUTHZ_SERVICE_HOST_BIND=127.0.0.1
+    export AUTHZ_SPRING_DATASOURCE_URL='jdbc:mysql://authz-mysql:3306/authz_service_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC'
+    export AUTHZ_SPRING_DATASOURCE_USERNAME=authz_user
+    export AUTHZ_SPRING_DATASOURCE_PASSWORD=authz_password
+    export AUTHZ_PLATFORM_SECURITY_RATE_LIMIT_ENABLED=true
+    docker compose -f docker/compose.yml -f docker/prod/compose.yml config >/tmp/authz-prod.yml
   IMAGE_URI: ghcr.io/${{ github.repository }}
   CI_IMAGE_BUILD_COMMAND: |
     docker build \
