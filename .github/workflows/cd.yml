@@ -55,7 +55,7 @@ env:
     fi
   COMPOSE_CONFIG_COMMAND: |
     AUTHZ_SERVICE_IMAGE=123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/dev-authz-service:test docker compose -f docker/compose.yml -f docker/dev/compose.yml config >/tmp/authz-dev.yml
-    AUTHZ_SERVICE_IMAGE=123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/prod-authz-service:test GITHUB_TOKEN=ci-token PERMISSION_INTERNAL_REQUEST_SECRET=ci-secret AUTHZ_INTERNAL_JWT_SECRET=ci-authz-secret REDIS_HOST=central-redis AUTHZ_SERVICE_HOST_BIND=127.0.0.1 PLATFORM_SECURITY_JWT_SECRET=authz-platform-security-ci-secret-authz-platform-security-ci-secret PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS=127.0.0.1 docker compose -f docker/compose.yml -f docker/prod/compose.yml config >/tmp/authz-prod.yml
+    AUTHZ_SERVICE_IMAGE=123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/prod-authz-service:test GITHUB_TOKEN=ci-token PERMISSION_INTERNAL_REQUEST_SECRET=ci-secret AUTHZ_INTERNAL_JWT_SECRET=ci-authz-secret REDIS_HOST=redis AUTHZ_SERVICE_HOST_BIND=127.0.0.1 PLATFORM_SECURITY_JWT_SECRET=authz-platform-security-ci-secret-authz-platform-security-ci-secret PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS=127.0.0.1 AUTHZ_SPRING_DATASOURCE_URL=jdbc:mysql://authz-mysql:3306/authz_service_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC AUTHZ_SPRING_DATASOURCE_USERNAME=authz_user AUTHZ_SPRING_DATASOURCE_PASSWORD=authz_password AUTHZ_PLATFORM_SECURITY_RATE_LIMIT_ENABLED=true docker compose -f docker/compose.yml -f docker/prod/compose.yml config >/tmp/authz-prod.yml
   GITHUB_ACTOR: ${{ github.actor }}
   GH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN || secrets.GH_TOKEN || secrets.PACKAGES_TOKEN || secrets.GITHUB_TOKEN || github.token }}
 
@@ -203,8 +203,18 @@ jobs:
           aws ecr get-login-password --region "${AWS_REGION}" | docker login --username AWS --password-stdin "${REGISTRY}"
           cd "${DEPLOY_BUNDLE_DIR}"
           test -f .env.backend
+          grep -q '^AUTHZ_SPRING_DATASOURCE_URL=' .env.backend
+          grep -q '^AUTHZ_SPRING_DATASOURCE_USERNAME=' .env.backend
+          grep -q '^AUTHZ_SPRING_DATASOURCE_PASSWORD=' .env.backend
           sed -i "s|^AUTHZ_SERVICE_IMAGE=.*$|AUTHZ_SERVICE_IMAGE=${IMAGE_URI}|" .env.backend
-          ./scripts/deploy-stack.sh up
+          if grep -q '^AUTHZ_PLATFORM_SECURITY_RATE_LIMIT_ENABLED=' .env.backend; then
+            sed -i 's|^AUTHZ_PLATFORM_SECURITY_RATE_LIMIT_ENABLED=.*$|AUTHZ_PLATFORM_SECURITY_RATE_LIMIT_ENABLED=true|' .env.backend
+          else
+            printf '\nAUTHZ_PLATFORM_SECURITY_RATE_LIMIT_ENABLED=true\n' >> .env.backend
+          fi
+          docker compose --env-file .env.backend -f docker-compose.backend.yml pull authz-service
+          docker compose --env-file .env.backend -f docker-compose.backend.yml up -d authz-mysql
+          docker compose --env-file .env.backend -f docker-compose.backend.yml up -d --force-recreate --no-deps authz-service
           EOF
 
       - name: Fallback deploy command
