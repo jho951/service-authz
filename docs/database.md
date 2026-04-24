@@ -1,7 +1,7 @@
 # Database
 
 ## 저장 모델
-Authz-server의 v1 권한 모델은 RBAC입니다.
+authz-service의 v1 권한 모델은 RBAC입니다.
 
 Role:
 - `ADMIN`

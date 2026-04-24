@@ -3,7 +3,7 @@
 ## Admin Verify
 - Method: `POST`
 - Path: `/permissions/internal/admin/verify`
-- 목적: Gateway가 관리자 경로 요청을 처리하기 전 Authz-server에 최종 권한 판정을 위임합니다.
+- 목적: Gateway가 관리자 경로 요청을 처리하기 전 authz-service에 최종 권한 판정을 위임합니다.
 
 ## 요청 헤더
 필수:
@@ -17,7 +17,7 @@
 - `X-Internal-Request-Secret`
 - `Authorization: Bearer <internal-service-jwt>`
 
-내부 호출자 검증은 `permission.internal-auth.mode`로 결정합니다. 운영 profile은 `JWT` 모드를 사용하며, Gateway는 `AUTHZ_INTERNAL_JWT_SECRET`로 서명한 internal service JWT를 `Authorization` 헤더에 전달해야 합니다. local/test에서는 `LEGACY_SECRET` 또는 `HYBRID` 모드로 `X-Internal-Request-Secret`을 사용할 수 있습니다.
+내부 호출자 검증은 `permission.internal-auth.mode`로 결정합니다. current 기본값은 `HYBRID`이며, Gateway는 `Authorization: Bearer <internal-service-jwt>`를 기본 경로로 사용합니다. local/test 또는 호환 구간에서는 `X-Internal-Request-Secret`도 함께 허용할 수 있습니다.
 
 ## 판정 규칙
 - `permission.route-policy.routes` 설정으로 method/path를 `PermissionCode`에 매핑합니다.
@@ -40,7 +40,7 @@
 }
 ```
 
-현재 공통 오류 코드는 `common/src/main/java/com/example/permission/common/base/constant/ErrorCode.java`에서 관리합니다.
+현재 공통 오류 코드는 `common/src/main/java/com/authzservice/common/base/constant/ErrorCode.java`에서 관리합니다.
 
 ## 운영 API
 - `GET /health`: liveness

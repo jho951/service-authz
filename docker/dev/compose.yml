@@ -1,17 +1,65 @@
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: authz-mysql-dev
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-authz_service_db}
+      MYSQL_USER: ${MYSQL_USER:-authz_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-authz_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      TZ: ${TZ:-Asia/Seoul}
+    expose:
+      - "3306"
+    volumes:
+      - authz_mysql_data_dev:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      authz-private:
+        aliases:
+          - authz-mysql
+
   authz-service:
     container_name: authz-service-1
     restart: unless-stopped
     expose:
       - "8084"
+    depends_on:
+      mysql:
+        condition: service_healthy
     env_file:
       - path: ../../.env.dev
         required: false
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:mysql://authz-mysql:3306/authz_service_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-authz_user}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-authz_password}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:-com.mysql.cj.jdbc.Driver}
+      SPRING_H2_CONSOLE_ENABLED: ${SPRING_H2_CONSOLE_ENABLED:-false}
       PERMISSION_INTERNAL_REQUEST_SECRET: ${PERMISSION_INTERNAL_REQUEST_SECRET:-local-authz-internal-secret}
       REDIS_HOST: ${REDIS_HOST:-central-redis}
       PLATFORM_SECURITY_JWT_SECRET: ${PLATFORM_SECURITY_JWT_SECRET:-authz-platform-security-local-secret-authz-platform-security-local-secret}
       PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS: ${PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS:-172.16.0.0/12,127.0.0.1,::1}
     networks:
-      - service-shared
+      authz-private: {}
+      service-shared:
+        aliases:
+          - authz-service
+
+volumes:
+  authz_mysql_data_dev:
+
+networks:
+  authz-private:
+    driver: bridge
+    internal: true
+  service-shared:
+    external: true
+    name: ${SERVICE_SHARED_NETWORK:-${BACKEND_SHARED_NETWORK:-${MSA_SHARED_NETWORK:-service-backbone-shared}}}

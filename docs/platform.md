@@ -25,7 +25,7 @@ root `settings.gradle`의 `dependencyResolutionManagement`는 `platform-governan
 3. 환경변수 `GITHUB_ACTOR`, `GH_TOKEN`, `GITHUB_TOKEN`
 
 ## platform-security
-Authz-server는 platform-security를 ingress boundary, IP guard, rate limit, security audit 기본 흐름에 사용합니다.
+authz-service는 platform-security를 ingress boundary, IP guard, rate limit, security audit 기본 흐름에 사용합니다.
 
 주요 설정:
 - `platform.security.service-role-preset=INTERNAL_SERVICE`
@@ -50,7 +50,7 @@ Authz-server는 platform-security를 ingress boundary, IP guard, rate limit, sec
 - `REDIS_PORT`
 
 ## platform-governance
-Authz-server는 platform-governance로 control-plane 정책 검사를 등록합니다.
+authz-service는 platform-governance로 control-plane 정책 검사를 등록합니다.
 
 운영 profile 기준:
 - governance audit enabled

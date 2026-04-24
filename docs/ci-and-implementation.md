@@ -25,7 +25,7 @@ Docker build는 루트에서 `:app:bootJar`를 실행하고 `app/build/libs` 산
 GitHub Actions는 아래 workflow를 사용합니다.
 - `.github/workflows/ci.yml`: JDK 17 설정, `./gradlew --no-daemon clean build`, dev/prod compose config 검증
 - `.github/workflows/contract-check.yml`: PR에서 contract impact check 실행
-- `.github/workflows/cd.yml`: main push 또는 `v*` tag에서 GHCR image build/push
+- `.github/workflows/cd.yml`: main push 또는 `v*` tag에서 Amazon ECR image build/push
 
 CI와 Docker build는 `settings.gradle`의 GitHub Packages repository에서 platform private package를 해석하기 위해 credential이 필요합니다.
 - `GITHUB_ACTOR`
@@ -33,7 +33,7 @@ CI와 Docker build는 `settings.gradle`의 GitHub Packages repository에서 plat
 
 ## 문서 갱신 규칙
 - 제품 요구사항과 채택 정책은 영향받는 주제별 문서에 반영합니다.
-- 서비스 경계는 [architecture.md](./architecture.md), API 계약은 [auth-api.md](./auth-api.md), 저장 모델은 [database.md](./database.md), 플랫폼 운영 정책은 [platform.md](./platform.md)를 기준으로 갱신합니다.
+- 서비스 경계는 [architecture.md](./architecture.md), API 계약은 [api.md](./api.md), 저장 모델은 [database.md](./database.md), 플랫폼 운영 정책은 [platform.md](./platform.md)를 기준으로 갱신합니다.
 - 채택 전 전략 검토, 회의 메모, 비교 문서가 필요하면 별도 discussion 문서를 만들고 관련 주제 문서에서 연결합니다.
 - 채택된 기술 결정은 관련 주제 문서의 채택 결정 요약에 반영합니다.
 - 재현 가능한 디버깅 절차는 [troubleshooting.md](./troubleshooting.md)에 유지합니다.

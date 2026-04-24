@@ -182,3 +182,25 @@ bash scripts/run.docker.sh up prod
 - JWT가 유효하면 Authz는 DB 권한 기준으로 `200 OK` 또는 `403 FORBIDDEN`을 반환합니다.
 - JWT가 유효하지 않으면 Authz는 권한 계산 전에 `403 FORBIDDEN`을 반환합니다.
 - 이 JWT는 일반 보호 서비스용 `aud=internal-services` 토큰이 아니라 `aud=authz-service` caller proof 토큰이어야 합니다.
+
+## EC2 Compose와 ECS/Fargate 중 무엇을 쓸지
+
+authz-service는 두 방식을 모두 검토했습니다. 구현 이력과 대표 코드 조각은 service-contract의 `shared/deployment-topologies.md`에 남깁니다.
+
+`EC2 + Docker Compose`가 맞는 경우:
+
+- 단일 host에서 Redis, exporter, sidecar와 같이 빠르게 묶어 올려야 합니다.
+- 무중단보다 운영 단순성이 더 중요합니다.
+
+`ECS/Fargate + CodeDeploy`가 맞는 경우:
+
+- gateway의 관리자 검증 경로를 배포 중에도 끊으면 안 됩니다.
+- 새 권한 판정 인스턴스를 health check와 test listener로 먼저 검증해야 합니다.
+- rollback을 task definition revision 기준으로 하고 싶습니다.
+
+현재 운영 기본값:
+
+- 현재 Free Tier 계정에서는 `단일 EC2 + docker compose`를 실제 배포 기본값으로 둡니다.
+- authz-service는 gateway와 같은 host 안에서 관리자 검증 경로를 처리합니다.
+- 비용 제약이 해제되면 `ECS/Fargate + CodeDeploy blue/green`으로 승격합니다.
+- Redis runtime은 authz 앱과 분리하고, host 성격이 강한 `redis-service`, `monitoring-service`만 EC2를 유지합니다.

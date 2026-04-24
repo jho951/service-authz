@@ -1,6 +1,6 @@
-# Authz-server Docs
+# authz-service Docs
 
-이 디렉터리는 Authz-server의 현재 운영 계약, 구현 구조, 배포/디버깅 절차를 역할별로 나눈 문서 세트입니다.
+이 디렉터리는 authz-service의 현재 운영 계약, 구현 구조, 배포/디버깅 절차를 역할별로 나눈 문서 세트입니다.
 
 ## 문서 지도
 - [architecture.md](./architecture.md): 서비스 책임, 모듈 구조, 코드 경계, 채택 결정 요약
@@ -13,7 +13,7 @@
 - [troubleshooting.md](./troubleshooting.md): 로컬/도커 디버깅, curl 재현, 장애 점검
 
 ## 정책 문서
-- 현재 유효한 제품 요구사항은 주제별 문서에 둡니다. 서비스 경계는 [architecture.md](./architecture.md), API 계약은 [auth-api.md](./auth-api.md), 저장 모델은 [database.md](./database.md), 플랫폼 운영 정책은 [platform.md](./platform.md)를 기준으로 봅니다.
+- 현재 유효한 제품 요구사항은 주제별 문서에 둡니다. 서비스 경계는 [architecture.md](./architecture.md), API 계약은 [api.md](./api.md), 저장 모델은 [database.md](./database.md), 플랫폼 운영 정책은 [platform.md](./platform.md)를 기준으로 봅니다.
 - [../prompts/](../prompts/): AI 작업 로그
 
 ## 운영 기준

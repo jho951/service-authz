@@ -2,20 +2,9 @@ name: authz-service
 
 services:
   authz-service:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-      secrets:
-        - gh_token
-        - github_actor
+    image: ${AUTHZ_SERVICE_IMAGE:-authz-service:dev}
     networks:
       - service-shared
-
-secrets:
-  gh_token:
-    environment: GH_TOKEN
-  github_actor:
-    environment: GITHUB_ACTOR
 
 networks:
   service-shared:

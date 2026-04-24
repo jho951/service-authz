@@ -1,11 +1,11 @@
 # authz-service Terraform
 
-This stack follows the MSA Terraform contract and provisions an ECS/Fargate Blue/Green deployment baseline.
+This stack follows the MSA Terraform contract and provisions the authz-service ECS/Fargate Blue/Green baseline.
 
 It creates:
 
-- VPC with public subnets, private subnets, Internet Gateway, and NAT Gateway
-- Public ALB with production and CodeDeploy test listeners
+- Optional dedicated VPC with public/private subnets when `create_vpc = true`
+- Internal ALB with production and CodeDeploy test listeners when used in shared VPC mode
 - Blue and green ALB target groups
 - ECS cluster, task definition, and ECS service using `CODE_DEPLOY`
 - CodeDeploy ECS application and deployment group
@@ -13,6 +13,30 @@ It creates:
 - CloudWatch log group
 - Secrets Manager secret for sensitive environment variables
 - Optional private RDS MySQL when `enable_mysql = true`
+
+## Recommended Topology
+
+Use this service behind an internal ALB in the shared VPC.
+
+- External clients do not call `authz-service` directly.
+- Gateway or other approved internal callers reach it through `authz.internal.platform.local`.
+- Redis stays on a private endpoint and is referenced directly from task environment variables.
+
+Recommended variable pattern:
+
+```hcl
+create_vpc = false
+
+existing_vpc_id             = "vpc-..."
+existing_public_subnet_ids  = ["subnet-public-a", "subnet-public-c"]
+existing_private_subnet_ids = ["subnet-app-a", "subnet-app-c"]
+existing_vpc_cidr           = "10.0.0.0/16"
+
+alb_internal                          = true
+alb_ingress_source_security_group_ids = ["sg-gateway-ecs-tasks"]
+private_dns_zone_id                   = "Z123456789PRIVATE"
+private_dns_name                      = "authz.internal.platform.local"
+```
 
 ## Apply Infrastructure
 
@@ -73,5 +97,7 @@ Rollback is handled by CodeDeploy auto rollback on deployment failure or stopped
 ## Notes
 
 - `terraform apply` changes infrastructure. It does not replace CodeDeploy as the release mechanism.
+- Shared VPC mode should be the production default for this service.
+- Prefer SG-based ALB ingress restrictions over CIDR-based exposure.
 - Secrets are stored in Terraform state. Use an encrypted remote backend before production use.
 - RDS deletion protection is enabled by default for database-owning services.

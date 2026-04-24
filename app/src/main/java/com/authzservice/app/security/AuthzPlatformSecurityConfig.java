@@ -74,6 +74,7 @@ public class AuthzPlatformSecurityConfig {
                         .requestMatchers(
                                 "/health",
                                 "/ready",
+                                "/actuator/prometheus",
                                 "/actuator/health",
                                 "/actuator/health/**",
                                 "/v3/api-docs/**",

@@ -23,6 +23,7 @@ GitHub Packages dependency 해석은 build secret 또는 환경 변수로 처리
 - `PLATFORM_SECURITY_RATE_LIMIT_INTERNAL_WINDOW_SECONDS=60`
 
 compose는 profile, secret, host/network처럼 환경별로 달라지는 값만 선언합니다.
+build와 private package secret은 `docker/compose.build.yml`에만 선언합니다.
 
 ## 실행 스크립트
 ```bash
@@ -44,7 +45,7 @@ bash scripts/run.docker.sh up prod
 
 ## Compose 구성
 `docker/compose.yml`은 공통 base compose입니다.
-- `authz-service` build 설정
+- `authz-service` image/runtime 설정
 - `service-shared` external network
 
 환경별 compose는 base compose와 함께 사용합니다.
@@ -54,21 +55,24 @@ docker compose -f docker/compose.yml -f docker/dev/compose.yml config
 docker compose -f docker/compose.yml -f docker/prod/compose.yml config
 ```
 
+dev build가 필요하면 `docker/compose.build.yml`을 추가로 겹칩니다.
+
 ## dev compose
-`docker/dev/compose.yml`은 dev override와 Redis를 포함합니다.
-- `central-redis`
+`docker/dev/compose.yml`은 dev override와 MySQL + authz-service를 포함합니다.
+- `authz-mysql`
 - `authz-service`
 
-dev Redis:
-- image: `redis:7-alpine`
-- host port: `${REDIS_EXPOSE_PORT:-6379}:6379`
-- command: `redis-server --appendonly yes`
-- healthcheck: `redis-cli ping`
+dev MySQL:
+- image: `mysql:8.0`
+- internal network alias: `authz-mysql`
+- healthcheck가 통과해야 authz-service가 기동을 시작합니다.
 
-dev Authz:
-- host port: `8084:8084`
+dev authz-service:
+- host port publish는 하지 않고 `8084`를 `expose`로만 연다.
 - profile: `dev`
-- default Redis host: `central-redis`
+- default datasource는 `authz-mysql`을 가리킨다.
+- default Redis host는 single-host compose 기준 external `central-redis` alias다.
+- EC2 분산 배포에서는 `REDIS_HOST`를 private DNS/IP 또는 관리형 Redis endpoint로 바꿔야 한다.
 - platform-security IP guard/rate limit은 기본 비활성화
 
 ## prod compose
@@ -81,6 +85,8 @@ dev Authz:
 - `PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS`
 
 운영 compose는 Redis를 직접 띄우지 않고 외부 Redis endpoint를 `REDIS_HOST`로 받습니다.
+
+운영에서 `authz-service`는 private 서비스로 두고, gateway에서만 `AUTHZ_ADMIN_VERIFY_URL`로 접근하도록 VPC 라우팅과 Security Group을 맞춥니다.
 
 ## 환경 파일
 `.env.example`을 기준으로 아래 파일을 만듭니다.

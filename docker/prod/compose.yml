@@ -1,6 +1,10 @@
 services:
   authz-service:
+    image: ${AUTHZ_SERVICE_IMAGE:?AUTHZ_SERVICE_IMAGE is required}
+    pull_policy: always
     restart: always
+    ports:
+      - "${AUTHZ_SERVICE_HOST_BIND:?AUTHZ_SERVICE_HOST_BIND is required}:${AUTHZ_SERVICE_HOST_PORT:-8084}:8084"
     expose:
       - "8084"
     env_file:
