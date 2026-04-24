@@ -54,7 +54,7 @@ env:
       docker push "${LATEST_IMAGE_URI}"
     fi
   COMPOSE_CONFIG_COMMAND: |
-    docker compose -f docker/compose.yml -f docker/dev/compose.yml config >/tmp/authz-dev.yml
+    AUTHZ_SERVICE_IMAGE=123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/dev-authz-service:test docker compose -f docker/compose.yml -f docker/dev/compose.yml config >/tmp/authz-dev.yml
     AUTHZ_SERVICE_IMAGE=123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/prod-authz-service:test GITHUB_TOKEN=ci-token PERMISSION_INTERNAL_REQUEST_SECRET=ci-secret AUTHZ_INTERNAL_JWT_SECRET=ci-authz-secret REDIS_HOST=central-redis AUTHZ_SERVICE_HOST_BIND=127.0.0.1 PLATFORM_SECURITY_JWT_SECRET=authz-platform-security-ci-secret-authz-platform-security-ci-secret PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS=127.0.0.1 docker compose -f docker/compose.yml -f docker/prod/compose.yml config >/tmp/authz-prod.yml
   GITHUB_ACTOR: ${{ github.actor }}
   GH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN || secrets.GH_TOKEN || secrets.PACKAGES_TOKEN || secrets.GITHUB_TOKEN || github.token }}
