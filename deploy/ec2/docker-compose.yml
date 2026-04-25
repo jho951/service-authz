@@ -1,0 +1,31 @@
+name: authz-service-ec2
+
+services:
+  authz-service:
+    image: ${AUTHZ_SERVICE_IMAGE:?AUTHZ_SERVICE_IMAGE is required}
+    pull_policy: always
+    restart: always
+    ports:
+      - "${AUTHZ_SERVICE_HOST_BIND:-127.0.0.1}:${AUTHZ_SERVICE_HOST_PORT:-8084}:8084"
+    expose:
+      - "8084"
+    env_file:
+      - ./.env.production
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PERMISSION_INTERNAL_REQUEST_SECRET: ${PERMISSION_INTERNAL_REQUEST_SECRET:?PERMISSION_INTERNAL_REQUEST_SECRET is required}
+      AUTHZ_INTERNAL_JWT_SECRET: ${AUTHZ_INTERNAL_JWT_SECRET:?AUTHZ_INTERNAL_JWT_SECRET is required}
+      REDIS_HOST: ${REDIS_HOST:?REDIS_HOST is required}
+      PLATFORM_SECURITY_JWT_SECRET: ${PLATFORM_SECURITY_JWT_SECRET:?PLATFORM_SECURITY_JWT_SECRET is required}
+      PLATFORM_SECURITY_IP_GUARD_ENABLED: ${PLATFORM_SECURITY_IP_GUARD_ENABLED:-true}
+      PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS: ${PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS:?PLATFORM_SECURITY_INTERNAL_ALLOW_CIDRS is required}
+      PLATFORM_SECURITY_RATE_LIMIT_ENABLED: ${PLATFORM_SECURITY_RATE_LIMIT_ENABLED:-true}
+    networks:
+      service-shared:
+        aliases:
+          - authz-service
+
+networks:
+  service-shared:
+    external: true
+    name: ${SERVICE_SHARED_NETWORK:-${BACKEND_SHARED_NETWORK:-${MSA_SHARED_NETWORK:-service-backbone-shared}}}
