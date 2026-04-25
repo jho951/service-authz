@@ -226,6 +226,7 @@ jobs:
           fi
           docker compose --env-file .env.backend -f docker-compose.backend.yml pull authz-service
           docker compose --env-file .env.backend -f docker-compose.backend.yml up -d authz-mysql
+          docker compose --env-file .env.backend -f docker-compose.backend.yml rm -sf authz-service || true
           docker compose --env-file .env.backend -f docker-compose.backend.yml up -d --force-recreate --no-deps authz-service
           EOF
 
