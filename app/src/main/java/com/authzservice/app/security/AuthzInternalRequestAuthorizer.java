@@ -2,14 +2,12 @@ package com.authzservice.app.security;
 
 import io.github.jho951.platform.security.api.SecurityContext;
 import io.github.jho951.platform.security.api.SecurityRequest;
-import io.github.jho951.platform.security.auth.InternalServiceCompatibilityAuthenticationAdapter;
 import io.github.jho951.platform.security.auth.PlatformAuthenticatedPrincipal;
 import io.github.jho951.platform.security.auth.PlatformSessionSupport;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -21,18 +19,15 @@ public class AuthzInternalRequestAuthorizer {
     private final PlatformSessionSupport platformSessionSupport;
     private final InternalRequestAuthenticator internalRequestAuthenticator;
     private final InternalRequestAuthenticationProperties properties;
-    private final InternalServiceCompatibilityAuthenticationAdapter compatibilityAuthenticationAdapter;
 
     public AuthzInternalRequestAuthorizer(
         PlatformSessionSupport platformSessionSupport,
         InternalRequestAuthenticator internalRequestAuthenticator,
-        InternalRequestAuthenticationProperties properties,
-        ObjectProvider<InternalServiceCompatibilityAuthenticationAdapter> compatibilityAuthenticationAdapterProvider
+        InternalRequestAuthenticationProperties properties
     ) {
         this.platformSessionSupport = platformSessionSupport;
         this.internalRequestAuthenticator = internalRequestAuthenticator;
         this.properties = properties;
-        this.compatibilityAuthenticationAdapter = compatibilityAuthenticationAdapterProvider.getIfAvailable();
     }
 
     public SecurityContext resolveInternalContext(SecurityRequest request) {
@@ -50,7 +45,7 @@ public class AuthzInternalRequestAuthorizer {
         return switch (properties.getMode()) {
             case DISABLED -> InternalRequestAuthenticationResult.allow("INTERNAL_AUTH_DISABLED");
             case JWT -> authenticateWithPlatform(request);
-            case LEGACY_SECRET -> authenticateCompatibility(request);
+            case LEGACY_SECRET -> authenticateLegacySecret(request);
             case HYBRID -> authenticateHybrid(request);
         };
     }
@@ -61,13 +56,13 @@ public class AuthzInternalRequestAuthorizer {
             return jwtResult;
         }
 
-        InternalRequestAuthenticationResult compatibilityResult = authenticateCompatibility(request);
-        if (compatibilityResult.allowed()) {
-            return compatibilityResult;
+        InternalRequestAuthenticationResult legacyResult = authenticateLegacySecret(request);
+        if (legacyResult.allowed()) {
+            return legacyResult;
         }
-        return compatibilityResult.reason() == null || compatibilityResult.reason().isBlank()
+        return legacyResult.reason() == null || legacyResult.reason().isBlank()
             ? jwtResult
-            : compatibilityResult;
+            : legacyResult;
     }
 
     private InternalRequestAuthenticationResult authenticateWithPlatform(SecurityRequest request) {
@@ -82,15 +77,8 @@ public class AuthzInternalRequestAuthorizer {
         return internalRequestAuthenticator.authenticateAccessToken(accessToken);
     }
 
-    private InternalRequestAuthenticationResult authenticateCompatibility(SecurityRequest request) {
-        if (compatibilityAuthenticationAdapter == null) {
-            return InternalRequestAuthenticationResult.deny("LEGACY_SECRET_NOT_CONFIGURED");
-        }
-        Optional<PlatformAuthenticatedPrincipal> principal = compatibilityAuthenticationAdapter.authenticate(request);
-        if (principal.isPresent()) {
-            return InternalRequestAuthenticationResult.allow("LEGACY_SECRET_MATCH");
-        }
-        return InternalRequestAuthenticationResult.deny("INVALID_LEGACY_SECRET");
+    private InternalRequestAuthenticationResult authenticateLegacySecret(SecurityRequest request) {
+        return internalRequestAuthenticator.authenticateLegacySecret(request.attributes());
     }
 
     private String trimToNull(String value) {

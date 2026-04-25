@@ -1,6 +1,7 @@
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
+        mavenLocal()
         mavenCentral()
 
         def githubPackagesUsername = providers.gradleProperty("githubPackagesUsername")
@@ -11,6 +12,7 @@ dependencyResolutionManagement {
                 .orElse(providers.gradleProperty("githubToken"))
                 .orElse(providers.gradleProperty("ghToken"))
                 .orElse(providers.gradleProperty("gh_token"))
+                .orElse(providers.environmentVariable("GH_PACKAGES_TOKEN"))
                 .orElse(providers.environmentVariable("GH_TOKEN"))
                 .orElse(providers.environmentVariable("GITHUB_TOKEN"))
 

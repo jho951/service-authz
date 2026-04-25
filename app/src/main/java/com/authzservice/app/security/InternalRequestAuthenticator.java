@@ -46,7 +46,7 @@ public class InternalRequestAuthenticator {
         return InternalRequestAuthenticationResult.deny(jwtResult.reason() + "," + legacyResult.reason());
     }
 
-    private InternalRequestAuthenticationResult authenticateLegacySecret(Map<String, String> headers) {
+    public InternalRequestAuthenticationResult authenticateLegacySecret(Map<String, String> headers) {
         String expected = properties.getLegacySecret();
         if (expected == null || expected.isBlank()) {
             return InternalRequestAuthenticationResult.deny("LEGACY_SECRET_NOT_CONFIGURED");

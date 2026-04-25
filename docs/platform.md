@@ -1,20 +1,18 @@
 # Platform
 
 ## 소비 버전
-- `platform-governance`: `3.0.1`
-- `platform-security`: `3.0.1`
-- `platform-integrations`: `3.0.1`
+- `platform-governance`: `4.0.0`
+- `platform-security`: `4.0.0`
+- `platform-integrations`: `4.0.0`
 
 Gradle은 GitHub Packages에서 아래 BOM과 starter를 소비합니다.
-- `io.github.jho951.platform:platform-runtime-bom:3.0.1`
-- `io.github.jho951.platform:platform-governance-bom:3.0.1`
+- `io.github.jho951.platform:platform-runtime-bom:4.0.0`
+- `io.github.jho951.platform:platform-governance-bom:4.0.0`
 - `io.github.jho951.platform:platform-governance-starter`
-- `io.github.jho951.platform:platform-security-bom:3.0.1`
+- `io.github.jho951.platform:platform-security-bom:4.0.0`
 - `io.github.jho951.platform:platform-security-starter`
-- `io.github.jho951.platform:platform-security-legacy-compat`
 - `io.github.jho951.platform:platform-security-web-api`
-- `io.github.jho951.platform:platform-security-governance-bridge:3.0.1`
-- `io.github.jho951:audit-log-api`
+- `io.github.jho951.platform:platform-security-governance-bridge:4.0.0`
 
 ## GitHub Packages
 root `settings.gradle`의 `dependencyResolutionManagement`는 `platform-governance`, `platform-security`, `platform-integrations` GitHub Packages repository를 등록합니다. Project-level repository 선언은 `RepositoriesMode.FAIL_ON_PROJECT_REPOS`로 막습니다.
@@ -39,7 +37,7 @@ authz-service는 platform-security를 ingress boundary, IP guard, rate limit, se
 
 현재 내부 caller proof:
 - 운영 profile은 `permission.internal-auth.mode=JWT`로 internal service JWT를 검증합니다.
-- local/test 호환을 위해 `LEGACY_SECRET`, `HYBRID` 모드에서 `platform-security-legacy-compat`가 `X-Internal-Request-Secret`을 platform-owned compat seam으로 수용합니다.
+- local/test 호환을 위해 `LEGACY_SECRET`, `HYBRID` 모드에서 `InternalRequestAuthenticator`가 `X-Internal-Request-Secret` service-owned fallback path를 직접 처리합니다.
 
 운영 필수값:
 - `PLATFORM_SECURITY_JWT_SECRET`
@@ -58,7 +56,7 @@ authz-service는 platform-governance로 control-plane 정책 검사를 등록합
 - violation action `DENY`
 - handler failure fatal enabled
 - policy config required in enforcing mode
-- audit delivery uses `AuditSink` through `platform-governance` mainline starter
+- audit delivery uses `GovernanceAuditSink`, and domain audit recording uses `GovernanceAuditRecorder`
 
 현재 등록 정책:
 - `authz.permission` 리소스의 `grant` 액션에서 `*` 또는 `:*`로 끝나는 wildcard permission grant 차단
@@ -71,5 +69,5 @@ authz-service는 platform-governance로 control-plane 정책 검사를 등록합
 ```
 
 기대 버전:
-- `platform-security-starter:3.0.1`
-- `platform-governance-starter:3.0.1`
+- `platform-security-starter:4.0.0`
+- `platform-governance-starter:4.0.0`

@@ -143,7 +143,7 @@ bash scripts/run.docker.sh up prod
 - `platform.governance.policy-config.values.authz.policy.publish.requires-approval=true`
 - `platform.governance.operational.require-audit-sink-in-production=false`
 4. 자주 실패하는 조건:
-- `AuditSink` bean 없음
+- `GovernanceAuditSink` bean 없음
 - `engine.strict=false`
 - `handler-failure-fatal=false`
 - enforcing mode에서 policy config 비어 있음
